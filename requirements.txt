@@ -1,8 +1,2 @@
 Flask
-flask_wtf
-dotenv
-bs4
-requests
-os
-logging
 gunicorn
