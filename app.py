@@ -125,9 +125,8 @@ def check_target_cgpa():
     department = data.get('department')
     comp_credits = data.get('comp_credits')
     curr_cgpa = data.get('curr_cgpa')
-    target_gpa = int(data.get('target_gpa'))
+    target_gpa = float(data.get('target_gpa'))
     total_creds = 0
-    print(target_gpa)
     if target_gpa > 4:
         return jsonify({'result': 'invalid'}), 200
 
@@ -145,11 +144,7 @@ def check_target_cgpa():
     now = totalTarget - credCgpa
     possible = now / remaining_sem
 
-    rem_cgpa = remaining_sem * 4
-    target_gpa_creds = total_creds * target_gpa
-    minimum = (target_gpa_creds - rem_cgpa) / comp_credits
-    print(possible)
-    
+   
     if round(possible, 2) > 4:
         rem_cgpa = remaining_sem * 4
         target_gpa_creds = total_creds * target_gpa
