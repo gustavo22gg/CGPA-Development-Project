@@ -23,6 +23,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
             flex-grow: 1;
+            width: 90%;
         }
         h1, h2 {
             text-align: center;
@@ -78,7 +79,7 @@
             margin: 5px;
             background-color: #f4f4f4;
             border-radius: 5px;
-            transition: background-color 0.3s, transform 0.3s;
+            transition: background-color 0.3s;
         }
         .course-item:hover, .this-sem-item:hover {
             background-color: #e0e0e0;
@@ -145,6 +146,38 @@
         .hidden {
             display: none;
         }
+
+      
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px auto;
+                padding: 10px;
+                width: 95%;
+            }
+            h1, h2 {
+                font-size: 1.5em;
+            }
+            input[type="text"],
+            input[type="password"],
+            input[type="number"],
+            select,
+            button[type="submit"],
+            button.calculate-cgpa,
+            button#logout-button {
+                font-size: 14px;
+                padding: 8px;
+            }
+            .course-item, .this-sem-item {
+                padding: 8px;
+            }
+            .box {
+                padding: 8px;
+            }
+            .deleteButton {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -201,7 +234,7 @@
         &copy; 2024, Shadman
     </footer>
     <script>
-    document.getElementById('login-form').addEventListener('submit', function(event) {
+            document.getElementById('login-form').addEventListener('submit', function(event) {
         event.preventDefault();
         
         const username = document.getElementById('username').value;
@@ -443,15 +476,18 @@
         .then(data => {
             const resultDiv = document.getElementById('target-gpa-result');
             resultDiv.innerHTML = '';
-            if (data.result === 'not possible') {
+            if(data.result == 'invalid'){
+                resultDiv.textContent = 'Invalid target CGPA';
+            }else if(data.result === 'not possible') {
                 resultDiv.textContent = `Achieving the target CGPA is not possible. You need to have at least ${data.required_gpa} GPA to reach that target CGPA. Please consider repeating some courses.`;
-            } else {
+            }else {
                 resultDiv.textContent = `It is possible to achieve your target CGPA. You need to maintain an average GPA of ${data.required_gpa} in the remaining semesters.`;
             }
         })
         .catch(error => console.error('Error:', error));
     });
 
+    
     </script>
 </body>
 </html>

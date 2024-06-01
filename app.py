@@ -20,7 +20,7 @@ def index():
 
 @app.route('/logout', methods=['POST'])
 def logout():
-    # Perform any necessary cleanup, e.g., clearing session data
+    
     return jsonify({'success': 'Logged out successfully'})
 
 @app.route('/login', methods=['POST'])
@@ -125,8 +125,11 @@ def check_target_cgpa():
     department = data.get('department')
     comp_credits = data.get('comp_credits')
     curr_cgpa = data.get('curr_cgpa')
-    target_gpa = data.get('target_gpa')
+    target_gpa = int(data.get('target_gpa'))
     total_creds = 0
+    print(target_gpa)
+    if target_gpa > 4:
+        return jsonify({'result': 'invalid'}), 200
 
     if department not in ['cs', 'cse']:
         return jsonify({'error': 'Invalid department'}), 400
