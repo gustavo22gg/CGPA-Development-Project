@@ -88,7 +88,7 @@
             max-height: 200px;
             overflow-y: auto;
             overflow-x: hidden;
-            border: 0px solid #ccc;
+            border: 1px solid #ccc;
             border-radius: 5px;
             padding: 10px;
             background-color: #f9f9f9;
@@ -158,6 +158,7 @@
             <input type="password" id="password" name="password" required>
             <button type="submit">Login</button>
         </form>
+        <button id="logout-button" class="hidden">Logout</button>
 
         <div id="targetgpa" class="hidden">
             <h2>Check your Target CGPA</h2>
@@ -224,11 +225,12 @@
             if (data.error) {
                 alert('Login failed!');
             } else {
-                document.getElementById('log').style.display = 'none';
-                document.getElementById('login-form').style.display = 'none';
-                document.getElementById('targetgpa').style.display = 'block';
-                document.getElementById('course-data').style.display = 'block';
-                document.getElementById('this-semester-courses').style.display = 'block';
+                document.getElementById('log').classList.add('hidden');
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('logout-button').classList.remove('hidden');
+                document.getElementById('targetgpa').classList.remove('hidden');
+                document.getElementById('course-data').classList.remove('hidden');
+                document.getElementById('this-semester-courses').classList.remove('hidden');
 
                 const courseList = document.getElementById('course-list');
                 courseList.innerHTML = '';
@@ -257,7 +259,8 @@
                     const listItem = document.createElement('li');
                     listItem.textContent = course_name;
                     listItem.className = 'this-sem-item';
-                    listItem.dataset.course = course;
+                    listItem.dataset.course = course_name;
+                    listItem.dataset.courseCreds = credits_sem;
                     thisSemesterList.appendChild(listItem);
                 });
                
@@ -276,8 +279,29 @@
         })
         .catch(error => console.error('Error:', error));
     });
-    // var form = document.getElementById('form')
-    // csrfToken = form.getElementsByTagName('input')[0].value
+
+    document.getElementById('logout-button').addEventListener('click', function() {
+        const csrf_token = document.querySelector('input[name="csrf_token"]').value;
+
+        fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrf_token
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Logged out successfully!');
+                window.location.href = '/';
+            } else {
+                alert('Logout failed!');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
     const csrf_token = document.querySelector('input[name="csrf_token"]').value;
     const addedCourses = new Set();
     const thisSemCourses = new Set();
@@ -299,7 +323,9 @@
         newBox.className = 'box';
         newBox.dataset.course = courseName;
         newBox.dataset.type = type;
-        newBox.innerHTML = `<strong>${courseName}</strong>` + (courseCgpa ? `: CGPA ${courseCgpa}` : '');
+
+        newBox.innerHTML = `<strong>${courseName}</strong>` + 
+                            (courseCgpa ? `: CGPA ${courseCgpa}` : '');
 
         const cgpaInput = document.createElement('input');
         cgpaInput.type = 'number';

@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify, render_template
 from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
@@ -19,7 +18,11 @@ csrf = CSRFProtect(app)
 def index():
     return render_template('index.html')
 
-# @csrf.exempt
+@app.route('/logout', methods=['POST'])
+def logout():
+    # Perform any necessary cleanup, e.g., clearing session data
+    return jsonify({'success': 'Logged out successfully'})
+
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form['username']
@@ -81,7 +84,6 @@ def login():
 
     return jsonify({'error': 'Login failed or failed to fetch data'}), 401
 
-# Setup logging
 logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/calculate_cgpa', methods=['POST'])
@@ -102,7 +104,6 @@ def calculate_cgpa():
         cgpa = cgpa[0] * cgpa[1]
         creds_cgpa += float(cgpa)
         
-   
     if this_sem_data:
         for course, cgpa in this_sem_data.items():
             if course in all_course:
@@ -110,14 +111,11 @@ def calculate_cgpa():
                 creds_cgpa -= repeat
                 creds_cgpa += (cgpa[0] * cgpa[1])
             else:
-                app.logger.debug(f"Processing this semester course: {course}, CGPA: {cgpa}")
-                overal += float(cgpa)
-                overal_count += 1
+                total_credits += cgpa[1]
+                cgpa = cgpa[0] * cgpa[1]
+                creds_cgpa += float(cgpa)
 
-    if overal_count == 0:
-        return jsonify({'error': 'No valid CGPA data'}), 400
-
-    new_cgpa = overal / overal_count
+    new_cgpa = creds_cgpa / total_credits
     app.logger.debug(f"Calculated new CGPA: {new_cgpa}")
     return jsonify({'new_cgpa': round(new_cgpa, 2)})
 
@@ -155,7 +153,6 @@ def check_target_cgpa():
         minimum = (target_gpa_creds - rem_cgpa) / comp_credits
         return jsonify({'result': 'not possible', 'required_gpa': round(minimum, 2)})
     else:
-        
         return jsonify({'result': 'possible', 'required_gpa': round(possible, 2)})
 
 if __name__ == '__main__':
