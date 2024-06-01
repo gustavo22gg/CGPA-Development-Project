@@ -1,7 +1,9 @@
+
 from flask import Flask, request, jsonify, render_template
 from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
+from collections import defaultdict
 import requests
 import os
 import logging
@@ -41,7 +43,7 @@ def login():
                 if grade_sheet_response.status_code == 200:
                     soup = BeautifulSoup(grade_sheet_response.content, 'html.parser')
                     table_rows = soup.find_all('tr')
-                    course_data = {}
+                    course_data = defaultdict(lambda: (0, 0))
                     total_credits = []
                     for row in table_rows:
                         cells = row.find_all('td')
@@ -54,9 +56,15 @@ def login():
                                 if 'SEMESTER' not in cells[0] and int(float(creds)) != 0:
                                     course_name = cells[0].get_text(strip=True)
                                     cgpa = float(cells[5].get_text(strip=True))
-                                    course_data[course_name] = cgpa
+                                    credits = float(cells[3].get_text(strip=True))
+                                    current_cgpa, current_credits = course_data[course_name]
+                                    if cgpa > current_cgpa:
+                                        course_data[course_name] = (cgpa, credits)  #made a change
 
-                this_sem = []
+
+                # this_sem = []
+                this_sem = defaultdict(lambda: (0, 0))
+
                 advised_response = session.get(advised)
                 if advised_response.status_code == 200:
                     soup = BeautifulSoup(advised_response.text, 'html.parser')
@@ -64,50 +72,60 @@ def login():
                     for row in course_rows:
                         cells = row.find_all('td')
                         if 'Course Code' not in cells[0].get_text(strip=True):
+                            credit_persem = cells[4].get_text(strip=True)
                             advised_course = cells[0].get_text(strip=True)
-                            this_sem.append(advised_course)
-
+                            # this_sem.append([advised_course, credit_persem])
+                            this_sem[advised_course] = (None, credit_persem)
                     total_credits = total_credits[-1][1:]  # (credits completed, current gpa)
                     return jsonify(course_data=course_data, total_credits=total_credits, this_sem=this_sem)
 
     return jsonify({'error': 'Login failed or failed to fetch data'}), 401
 
-# Setup logging
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    # Perform any necessary cleanup, e.g., clearing session data
+    return jsonify({'success': 'Logged out successfully'})
+
+
 logging.basicConfig(level=logging.DEBUG)
-# @csrf.exempt
 
 @app.route('/calculate_cgpa', methods=['POST'])
 def calculate_cgpa():
     data = request.json
     cgpa_data = data.get('imp')['cgpa_data']
+  
     this_sem_data = data.get('sem')['this_sem_data']
     all_course = data.get('mergedData')
+
     app.logger.debug(f"Received CGPA data: {cgpa_data}")
     app.logger.debug(f"Received this semester data: {this_sem_data}")
-
-    overal = 0
-    overal_count = 0
-
+    
+    total_credits = 0
+    creds_cgpa = 0
     for course, cgpa in all_course.items():
-        overal += float(cgpa)
-        overal_count += 1
-
+        total_credits += cgpa[1]
+        cgpa = cgpa[0] * cgpa[1]
+        creds_cgpa += float(cgpa)
+        
+   
     if this_sem_data:
         for course, cgpa in this_sem_data.items():
             if course in all_course:
-                overal += cgpa - all_course[course]
+                repeat = all_course[course][0] * all_course[course][1]
+                creds_cgpa -= repeat
+                creds_cgpa += (cgpa[0] * cgpa[1])
             else:
-                app.logger.debug(f"Processing this semester course: {course}, CGPA: {cgpa}")
-                overal += float(cgpa)
-                overal_count += 1
+                total_credits += cgpa[1]
+                cgpa = cgpa[0] * cgpa[1]
+                creds_cgpa += float(cgpa)
 
-    if overal_count == 0:
-        return jsonify({'error': 'No valid CGPA data'}), 400
+    # if overal_count == 0:
+    #     return jsonify({'error': 'No valid CGPA data'}), 400
 
-    new_cgpa = overal / overal_count
+    new_cgpa = creds_cgpa / total_credits
     app.logger.debug(f"Calculated new CGPA: {new_cgpa}")
     return jsonify({'new_cgpa': round(new_cgpa, 2)})
-# @csrf.exempt
 
 @app.route('/check_target_cgpa', methods=['POST'])
 def check_target_cgpa():
@@ -116,6 +134,7 @@ def check_target_cgpa():
     comp_credits = data.get('comp_credits')
     curr_cgpa = data.get('curr_cgpa')
     target_gpa = data.get('target_gpa')
+    total_creds = 0
 
     if department not in ['cs', 'cse']:
         return jsonify({'error': 'Invalid department'}), 400
@@ -131,9 +150,18 @@ def check_target_cgpa():
     now = totalTarget - credCgpa
     possible = now / remaining_sem
 
-    if possible > 4:
-        return jsonify({'result': 'not possible'})
+    rem_cgpa = remaining_sem * 4
+    target_gpa_creds = total_creds * target_gpa
+    minimum = (target_gpa_creds - rem_cgpa) / comp_credits
+    print(possible)
+    
+    if round(possible, 2) > 4:
+        rem_cgpa = remaining_sem * 4
+        target_gpa_creds = total_creds * target_gpa
+        minimum = (target_gpa_creds - rem_cgpa) / comp_credits
+        return jsonify({'result': 'not possible', 'required_gpa': round(minimum, 2)})
     else:
+        
         return jsonify({'result': 'possible', 'required_gpa': round(possible, 2)})
 
 if __name__ == '__main__':
