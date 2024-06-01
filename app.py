@@ -84,7 +84,7 @@ def login():
 
 @app.route('/logout', methods=['POST'])
 def logout():
-    # Perform any necessary cleanup, e.g., clearing session data
+   
     return jsonify({'success': 'Logged out successfully'})
 
 
@@ -120,8 +120,6 @@ def calculate_cgpa():
                 cgpa = cgpa[0] * cgpa[1]
                 creds_cgpa += float(cgpa)
 
-    # if overal_count == 0:
-    #     return jsonify({'error': 'No valid CGPA data'}), 400
 
     new_cgpa = creds_cgpa / total_credits
     app.logger.debug(f"Calculated new CGPA: {new_cgpa}")
