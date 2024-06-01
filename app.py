@@ -81,13 +81,7 @@ def login():
 
     return jsonify({'error': 'Login failed or failed to fetch data'}), 401
 
-
-@app.route('/logout', methods=['POST'])
-def logout():
-   
-    return jsonify({'success': 'Logged out successfully'})
-
-
+# Setup logging
 logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/calculate_cgpa', methods=['POST'])
@@ -116,12 +110,14 @@ def calculate_cgpa():
                 creds_cgpa -= repeat
                 creds_cgpa += (cgpa[0] * cgpa[1])
             else:
-                total_credits += cgpa[1]
-                cgpa = cgpa[0] * cgpa[1]
-                creds_cgpa += float(cgpa)
+                app.logger.debug(f"Processing this semester course: {course}, CGPA: {cgpa}")
+                overal += float(cgpa)
+                overal_count += 1
 
+    if overal_count == 0:
+        return jsonify({'error': 'No valid CGPA data'}), 400
 
-    new_cgpa = creds_cgpa / total_credits
+    new_cgpa = overal / overal_count
     app.logger.debug(f"Calculated new CGPA: {new_cgpa}")
     return jsonify({'new_cgpa': round(new_cgpa, 2)})
 
