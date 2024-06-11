@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course CGPA Calculator</title>
     <style>
+        /* Existing CSS code */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -86,6 +87,7 @@
             transform: scale(1.01);
         }
         .box-container {
+            top: 10px;
             max-height: 200px;
             overflow-y: auto;
             overflow-x: hidden;
@@ -147,7 +149,23 @@
             display: none;
         }
 
-      
+        .logout-container {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .pretty-box {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+            font-size: 1.2em;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+
         @media (max-width: 600px) {
             .container {
                 margin: 20px auto;
@@ -191,8 +209,9 @@
             <input type="password" id="password" name="password" required>
             <button type="submit">Login</button>
         </form>
-        <button id="logout-button" class="hidden">Logout</button>
-
+        <div class="logout-container">
+            <button id="logout-button" class="hidden">Logout</button>
+        </div>
         <div id="targetgpa" class="hidden">
             <h2>Check your Target CGPA</h2>
             <form id="target-cgpa-form" method="POST">
@@ -217,7 +236,7 @@
         <div id="course-data" class="hidden">
             <h2>Improve your courses grades</h2>
             <ul id="course-list" class="course-list"></ul>
-            <div id="boxContainer" class="box-container"></div>
+            <div id="boxContainer" class="box-container hidden"></div>
             <button class="calculate-cgpa" onclick="calculateCgpa('improve')">Calculate CGPA</button>
             <div id="new-cgpa"></div>
         </div>
@@ -225,7 +244,7 @@
         <div id="this-semester-courses" class="hidden">
             <h2>Calculate CGPA for this semester</h2>
             <ul id="this-semester-list" class="this-semester-list"></ul>
-            <div id="boxContainer2" class="box-container"></div>
+            <div id="boxContainer2" class="box-container hidden"></div>
             <button class="calculate-cgpa" onclick="calculateCgpa('this-semester')">Calculate CGPA</button>
             <div id="new-sem-cgpa"></div>
         </div>
@@ -234,260 +253,805 @@
         &copy; 2024, Shadman
     </footer>
     <script>
-            document.getElementById('login-form').addEventListener('submit', function(event) {
-        event.preventDefault();
-        
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const csrf_token = document.querySelector('input[name="csrf_token"]').value;
-
-        fetch('/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': csrf_token
-            },
-            body: new URLSearchParams({ 
-                username: username, 
-                password: password,
-                csrf_token: csrf_token
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert('Login failed!');
-            } else {
-                document.getElementById('log').classList.add('hidden');
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('logout-button').classList.remove('hidden');
-                document.getElementById('targetgpa').classList.remove('hidden');
-                document.getElementById('course-data').classList.remove('hidden');
-                document.getElementById('this-semester-courses').classList.remove('hidden');
-
-                const courseList = document.getElementById('course-list');
-                courseList.innerHTML = '';
-                const sortedKeys = Object.keys(data.course_data).sort((a, b) => data.course_data[a][0] - data.course_data[b][0]);
-                sortedKeys.forEach(course => {
-                    const [cgpa, credits] = data.course_data[course];
-                    if (cgpa <= 3.7) {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `${course}: ${cgpa}`;
-                        listItem.className = 'course-item';
-                        listItem.dataset.course = course;
-                        listItem.dataset.courseCgpa = cgpa;
-                        courseList.appendChild(listItem);
-                    }
-                });
-                document.querySelectorAll('.course-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        item.classList.add('clicked');
-                        createBox(item.dataset.course, item.dataset.courseCgpa, 'improve');
-                    });
-                });
-
-                const thisSemesterList = document.getElementById('this-semester-list');
-                thisSemesterList.innerHTML = ''
-                Object.entries(data.this_sem).forEach(([course_name, credits_sem]) => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = course_name;
-                    listItem.className = 'this-sem-item';
-                    listItem.dataset.course = course_name;
-                    listItem.dataset.courseCreds = credits_sem;
-                    thisSemesterList.appendChild(listItem);
-                });
-               
-                document.querySelectorAll('.this-sem-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        item.classList.add('clicked');
-                        createBox(item.dataset.course, null, 'this-semester');
-                    });
-                });
-                window.courseData = data.course_data;
-                window.this_sem = data.this_sem;
-
-                document.getElementById('comp_credits').value = data.total_credits[0];
-                document.getElementById('curr_cgpa').value = data.total_credits[1];
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-
-    document.getElementById('logout-button').addEventListener('click', function() {
-        const csrf_token = document.querySelector('input[name="csrf_token"]').value;
-
-        fetch('/logout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrf_token
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Logged out successfully!');
-                window.location.href = '/';
-            } else {
-                alert('Logout failed!');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-
-    const csrf_token = document.querySelector('input[name="csrf_token"]').value;
-    const addedCourses = new Set();
-    const thisSemCourses = new Set();
-
-    function createBox(courseName, courseCgpa, type) {
-        const existingBox = document.querySelector(`.box[data-course="${courseName}"][data-type="${type}"]`);
-        if (existingBox) {
-            alert(`${courseName} is already added.`);
-            return;
-        }
-
-        if (type === 'improve') {
-            addedCourses.add(courseName);
-        } else if (type === 'this-semester') {
-            thisSemCourses.add(courseName);
-        }
-
-        const newBox = document.createElement('div');
-        newBox.className = 'box';
-        newBox.dataset.course = courseName;
-        newBox.dataset.type = type;
-
-        newBox.innerHTML = `<strong>${courseName}</strong>` + 
-                            (courseCgpa ? `: CGPA ${courseCgpa}` : '');
-
-        const cgpaInput = document.createElement('input');
-        cgpaInput.type = 'number';
-        cgpaInput.min = 0;
-        cgpaInput.max = 4;
-        cgpaInput.step = 0.01;
-        cgpaInput.placeholder = 'Enter new CGPA';
-        cgpaInput.style.display = 'block';
-        cgpaInput.style.marginTop = '10px';
-        cgpaInput.className = 'cgpa-input';
-        cgpaInput.value = courseCgpa || '';
-
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'deleteButton';
-        deleteButton.innerText = 'Delete';
-        deleteButton.addEventListener('click', function() {
-            newBox.remove();
-            if (type === 'improve') {
-                addedCourses.delete(courseName);
-                const courseItem = document.querySelector(`.course-item[data-course="${courseName}"]`);
-                if (courseItem) {
-                    courseItem.classList.remove('clicked');
-                }
-            } else if (type === 'this-semester') {
-                thisSemCourses.delete(courseName);
-                const semItem = document.querySelector(`.this-sem-item[data-course="${courseName}"]`);
-                if (semItem) {
-                    semItem.classList.remove('clicked');
-                }
-            }
-        });
-
-        newBox.appendChild(cgpaInput);
-        newBox.appendChild(deleteButton);
-
-        if (type === 'improve') {
-            document.getElementById('boxContainer').appendChild(newBox);
-        } else if (type === 'this-semester') {
-            document.getElementById('boxContainer2').appendChild(newBox);
-        }
-    }
-
-    function calculateCgpa(type) {
-        const cgpaData = {};
-        const thisSemData = {};
-
-        document.querySelectorAll(`.box[data-type="${type}"]`).forEach(box => {     
-            const courseName = box.dataset.course;
-            const newCgpa = box.querySelector('.cgpa-input').value;
-
-            if (newCgpa && !isNaN(newCgpa) && newCgpa >= 0 && newCgpa <= 4) {
-                if (type === 'improve') {
-                    cgpaData[courseName] = [parseFloat(newCgpa), window.courseData[courseName][1]]; 
-                } else if (type === 'this-semester') {
-                    window.this_sem[courseName][0] = newCgpa;
-                    thisSemData[courseName] = [parseFloat(newCgpa), parseInt(window.this_sem[courseName][1], 10)];
-                }
-            } else {
-                alert(`Invalid CGPA value for ${courseName}. Please enter a number between 0 and 4.`);
-            }
-        });
-
-        const imp = { cgpa_data: cgpaData };
-        const sem = { this_sem_data: thisSemData };
-        const mergedData = { ...window.courseData, ...cgpaData };
-
-        fetch('/calculate_cgpa', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrf_token
-            },
-            body: JSON.stringify({
-                imp: imp,
-                sem: sem,
-                mergedData: mergedData
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert('CGPA calculation failed!');
-            } else {
-                if (type === 'improve') {
-                    document.getElementById('new-cgpa').textContent = `New CGPA: ${data.new_cgpa}`;
-                } else {
-                    document.getElementById('new-sem-cgpa').textContent = `New Semester CGPA: ${data.new_cgpa}`;
-                }
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
-    document.getElementById('target-cgpa-form').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const department = document.getElementById('department').value;
-        const comp_credits = document.getElementById('comp_credits').value;
-        const curr_cgpa = document.getElementById('curr_cgpa').value;
-        const target_gpa = document.getElementById('target_gpa').value;
-
-        fetch('/check_target_cgpa', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrf_token
-            },
-            body: JSON.stringify({
-                department: department,
-                comp_credits: parseInt(comp_credits),
-                curr_cgpa: parseFloat(curr_cgpa),
-                target_gpa: parseFloat(target_gpa)
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            const resultDiv = document.getElementById('target-gpa-result');
-            resultDiv.innerHTML = '';
-            if(data.result == 'invalid'){
-                resultDiv.textContent = 'Invalid target CGPA';
-            }else if(data.result === 'not possible') {
-                resultDiv.textContent = `Achieving the target CGPA is not possible. You need to have at least ${data.required_gpa} GPA to reach that target CGPA. Please consider repeating some courses.`;
-            }else {
-                resultDiv.textContent = `It is possible to achieve your target CGPA. You need to maintain an average GPA of ${data.required_gpa} in the remaining semesters.`;
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-
+document.getElementById('login-form').addEventListener('submit', function(event) {
+    event.preventDefault();
     
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const csrf_token = document.querySelector('input[name="csrf_token"]').value;
+
+    fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrf_token
+        },
+        body: new URLSearchParams({ 
+            username: username, 
+            password: password,
+            csrf_token: csrf_token
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Login failed!');
+        } else {
+            document.getElementById('log').classList.add('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('logout-button').classList.remove('hidden');
+            document.getElementById('targetgpa').classList.remove('hidden');
+            document.getElementById('course-data').classList.remove('hidden');
+            document.getElementById('this-semester-courses').classList.remove('hidden');
+
+            const courseList = document.getElementById('course-list');
+            courseList.innerHTML = '';
+            const sortedKeys = Object.keys(data.course_data).sort((a, b) => data.course_data[a][0] - data.course_data[b][0]);
+            sortedKeys.forEach(course => {
+                const [cgpa, credits] = data.course_data[course];
+                if (cgpa <= 3.7) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${course}: ${cgpa}`;
+                    listItem.className = 'course-item';
+                    listItem.dataset.course = course;
+                    listItem.dataset.courseCgpa = cgpa;
+                    courseList.appendChild(listItem);
+                }
+            });
+            document.querySelectorAll('.course-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    item.classList.add('clicked');
+                    createBox(item.dataset.course, item.dataset.courseCgpa, 'improve');
+                    document.getElementById('boxContainer').classList.remove('hidden');
+                });
+            });
+
+            const thisSemesterList = document.getElementById('this-semester-list');
+            thisSemesterList.innerHTML = '';
+            Object.entries(data.this_sem).forEach(([course_name, credits_sem]) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = course_name;
+                listItem.className = 'this-sem-item';
+                listItem.dataset.course = course_name;
+                listItem.dataset.courseCreds = credits_sem;
+                thisSemesterList.appendChild(listItem);
+            });
+
+            document.querySelectorAll('.this-sem-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    item.classList.add('clicked');
+                    createBox(item.dataset.course, null, 'this-semester');
+                    document.getElementById('boxContainer2').classList.remove('hidden');
+                });
+            });
+            window.courseData = data.course_data;
+            window.this_sem = data.this_sem;
+
+            document.getElementById('comp_credits').value = data.total_credits[0];
+            document.getElementById('curr_cgpa').value = data.total_credits[1];
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('logout-button').addEventListener('click', function() {
+    const csrf_token = document.querySelector('input[name="csrf_token"]').value;
+
+    fetch('/logout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf_token
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Logged out successfully!');
+            window.location.href = '/';
+        } else {
+            alert('Logout failed!');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+const csrf_token = document.querySelector('input[name="csrf_token"]').value;
+const addedCourses = new Set();
+const thisSemCourses = new Set();
+
+function createBox(courseName, courseCgpa, type) {
+    const existingBox = document.querySelector(`.box[data-course="${courseName}"][data-type="${type}"]`);
+    if (existingBox) {
+        alert(`${courseName} is already added.`);
+        return;
+    }
+
+    if (type === 'improve') {
+        addedCourses.add(courseName);
+    } else if (type === 'this-semester') {
+        thisSemCourses.add(courseName);
+    }
+
+    const newBox = document.createElement('div');
+    newBox.className = 'box';
+    newBox.dataset.course = courseName;
+    newBox.dataset.type = type;
+
+    newBox.innerHTML = `<strong>${courseName}</strong>` + 
+                        (courseCgpa ? `: CGPA ${courseCgpa}` : '');
+
+    const cgpaInput = document.createElement('input');
+    cgpaInput.type = 'number';
+    cgpaInput.min = 0;
+    cgpaInput.max = 4;
+    cgpaInput.step = 0.01;
+    cgpaInput.placeholder = 'Enter new CGPA';
+    cgpaInput.style.display = 'block';
+    cgpaInput.style.marginTop = '10px';
+    cgpaInput.className = 'cgpa-input';
+    cgpaInput.value = courseCgpa || '';
+
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'deleteButton';
+    deleteButton.innerText = 'Delete';
+    deleteButton.addEventListener('click', function() {
+        newBox.remove();
+        if (type === 'improve') {
+            addedCourses.delete(courseName);
+            const courseItem = document.querySelector(`.course-item[data-course="${courseName}"]`);
+            if (courseItem) {
+                courseItem.classList.remove('clicked');
+            }
+            if (addedCourses.size === 0) {
+                document.getElementById('boxContainer').classList.add('hidden');
+            }
+        } else if (type === 'this-semester') {
+            thisSemCourses.delete(courseName);
+            const semItem = document.querySelector(`.this-sem-item[data-course="${courseName}"]`);
+            if (semItem) {
+                semItem.classList.remove('clicked');
+            }
+            if (thisSemCourses.size === 0) {
+                document.getElementById('boxContainer2').classList.add('hidden');
+            }
+        }
+    });
+
+    newBox.appendChild(cgpaInput);
+    newBox.appendChild(deleteButton);
+
+    if (type === 'improve') {
+        document.getElementById('boxContainer').appendChild(newBox);
+    } else if (type === 'this-semester') {
+        document.getElementById('boxContainer2').appendChild(newBox);
+    }
+}
+
+function calculateCgpa(type) {
+    const cgpaData = {};
+    const thisSemData = {};
+
+    document.querySelectorAll(`.box[data-type="${type}"]`).forEach(box => {     
+        const courseName = box.dataset.course;
+        const newCgpa = box.querySelector('.cgpa-input').value;
+
+        if (newCgpa && !isNaN(newCgpa) && newCgpa >= 0 && newCgpa <= 4) {
+            if (type === 'improve') {
+                cgpaData[courseName] = [parseFloat(newCgpa), window.courseData[courseName][1]]; 
+            } else if (type === 'this-semester') {
+                window.this_sem[courseName][0] = newCgpa;
+                thisSemData[courseName] = [parseFloat(newCgpa), parseInt(window.this_sem[courseName][1], 10)];
+            }
+        } else {
+            alert(`Invalid CGPA value for ${courseName}. Please enter a number between 0 and 4.`);
+        }
+    });
+
+    const imp = { cgpa_data: cgpaData };
+    const sem = { this_sem_data: thisSemData };
+    const mergedData = { ...window.courseData, ...cgpaData };
+
+    fetch('/calculate_cgpa', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf_token
+        },
+        body: JSON.stringify({
+            imp: imp,
+            sem: sem,
+            mergedData: mergedData
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('CGPA calculation failed!');
+        } else {
+            if (type === 'improve') {
+                const newCgpaElement = document.getElementById('new-cgpa');
+                newCgpaElement.textContent = `New CGPA: ${data.new_cgpa}`;
+                newCgpaElement.classList.add('pretty-box');
+            } else {
+                const newSemCgpaElement = document.getElementById('new-sem-cgpa');
+                newSemCgpaElement.textContent = `New Semester CGPA: ${data.new_cgpa}`;
+                newSemCgpaElement.classList.add('pretty-box');
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+document.getElementById('target-cgpa-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const department = document.getElementById('department').value;
+    const comp_credits = document.getElementById('comp_credits').value;
+    const curr_cgpa = document.getElementById('curr_cgpa').value;
+    const target_gpa = document.getElementById('target_gpa').value;
+
+    fetch('/check_target_cgpa', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf_token
+        },
+        body: JSON.stringify({
+            department: department,
+            comp_credits: parseInt(comp_credits),
+            curr_cgpa: parseFloat(curr_cgpa),
+            target_gpa: parseFloat(target_gpa)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultDiv = document.getElementById('target-gpa-result');
+        resultDiv.innerHTML = '';
+        if(data.result == 'invalid'){
+            resultDiv.textContent = 'Invalid target CGPA';
+        }else if(data.result === 'not possible') {
+            resultDiv.textContent = `Achieving the target CGPA is not possible. You need to have at least ${data.required_gpa} GPA to reach that target CGPA. Please consider repeating some courses.`;
+        }else {
+            resultDiv.textContent = `It is possible to achieve your target CGPA. You need to maintain an average GPA of ${data.required_gpa} in the remaining semesters.`;
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course CGPA Calculator</title>
+    <style>
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            color: #555;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            flex-grow: 1;
+            width: 90%;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button[type="submit"],
+        button.calculate-cgpa,
+        button#logout-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button[type="submit"]:hover,
+        button.calculate-cgpa:hover,
+        button#logout-button:hover {
+            background-color: #0056b3;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .course-list, .this-semester-list {
+            list-style-type: none;
+            padding: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .course-item, .this-sem-item {
+            cursor: pointer;
+            padding: 10px;
+            margin: 5px;
+            background-color: #f4f4f4;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .course-item:hover, .this-sem-item:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.01);
+        }
+        .box-container {
+            top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .box {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        .deleteButton {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .deleteButton:hover {
+            background-color: #c82333;
+        }
+        .clicked {
+            background-color: gray;
+            color: white;
+        }
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #007bff;
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0056b3;
+        }
+        #new-cgpa, #new-sem-cgpa {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f2f5;
+            color: #555;
+            border-top: 1px solid #ccc;
+            margin-top: auto;
+        }
+        .hidden {
+            display: none;
+        }
+
+        .logout-container {
+            display: flex;
+            justify-content: flex-end;
+        }
+       
+        .pretty-box {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            background-color: #add8e6; 
+            color: #0f5132;
+            border: 1px solid #badbcc;
+            font-size: 1.2em;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+
+
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px auto;
+                padding: 10px;
+                width: 95%;
+            }
+            h1, h2 {
+                font-size: 1.5em;
+            }
+            input[type="text"],
+            input[type="password"],
+            input[type="number"],
+            select,
+            button[type="submit"],
+            button.calculate-cgpa,
+            button#logout-button {
+                font-size: 14px;
+                padding: 8px;
+            }
+            .course-item, .this-sem-item {
+                padding: 8px;
+            }
+            .box {
+                padding: 8px;
+            }
+            .deleteButton {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="log">Login to Fetch CGPA Data</h1>
+        <form id="login-form" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div class="logout-container">
+            <button id="logout-button" class="hidden">Logout</button>
+        </div>
+        <div id="targetgpa" class="hidden">
+            <h2>Check your Target CGPA</h2>
+            <form id="target-cgpa-form" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label for="department">Department:</label>
+                <select id="department" name="department" required>
+                    <option value="cs">CS</option>
+                    <option value="cse">CSE</option>
+                </select>
+                <br>
+                <label for="comp_credits">Completed Credits:</label>
+                <input type="number" id="comp_credits" name="comp_credits" required>
+                <label for="curr_cgpa">Current CGPA:</label>
+                <input type="number" step="0.01" id="curr_cgpa" name="curr_cgpa" required>
+                <label for="target_gpa">Target CGPA:</label>
+                <input type="number" step="0.01" id="target_gpa" name="target_gpa" required>
+                <button type="submit">Check Target CGPA</button>
+            </form>
+            <div id="target-gpa-result"></div>
+        </div>
+
+        <div id="course-data" class="hidden">
+            <h2>Improve your courses grades</h2>
+            <ul id="course-list" class="course-list"></ul>
+            <div id="boxContainer" class="box-container hidden"></div>
+            <button class="calculate-cgpa" onclick="calculateCgpa('improve')">Calculate CGPA</button>
+            <div id="new-cgpa"></div>
+        </div>
+
+        <div id="this-semester-courses" class="hidden">
+            <h2>Calculate CGPA for this semester</h2>
+            <ul id="this-semester-list" class="this-semester-list"></ul>
+            <div id="boxContainer2" class="box-container hidden"></div>
+            <button class="calculate-cgpa" onclick="calculateCgpa('this-semester')">Calculate CGPA</button>
+            <div id="new-sem-cgpa"></div>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024, Shadman
+    </footer>
+    <script>
+document.getElementById('login-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const csrf_token = document.querySelector('input[name="csrf_token"]').value;
+
+    fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrf_token
+        },
+        body: new URLSearchParams({ 
+            username: username, 
+            password: password,
+            csrf_token: csrf_token
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Login failed!');
+        } else {
+            document.getElementById('log').classList.add('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('logout-button').classList.remove('hidden');
+            document.getElementById('targetgpa').classList.remove('hidden');
+            document.getElementById('course-data').classList.remove('hidden');
+            document.getElementById('this-semester-courses').classList.remove('hidden');
+
+            const courseList = document.getElementById('course-list');
+            courseList.innerHTML = '';
+            const sortedKeys = Object.keys(data.course_data).sort((a, b) => data.course_data[a][0] - data.course_data[b][0]);
+            sortedKeys.forEach(course => {
+                const [cgpa, credits] = data.course_data[course];
+                if (cgpa <= 3.7) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${course}: ${cgpa}`;
+                    listItem.className = 'course-item';
+                    listItem.dataset.course = course;
+                    listItem.dataset.courseCgpa = cgpa;
+                    courseList.appendChild(listItem);
+                }
+            });
+            document.querySelectorAll('.course-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    item.classList.add('clicked');
+                    createBox(item.dataset.course, item.dataset.courseCgpa, 'improve');
+                    document.getElementById('boxContainer').classList.remove('hidden');
+                });
+            });
+
+            const thisSemesterList = document.getElementById('this-semester-list');
+            thisSemesterList.innerHTML = '';
+            Object.entries(data.this_sem).forEach(([course_name, credits_sem]) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = course_name;
+                listItem.className = 'this-sem-item';
+                listItem.dataset.course = course_name;
+                listItem.dataset.courseCreds = credits_sem;
+                thisSemesterList.appendChild(listItem);
+            });
+
+            document.querySelectorAll('.this-sem-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    item.classList.add('clicked');
+                    createBox(item.dataset.course, null, 'this-semester');
+                    document.getElementById('boxContainer2').classList.remove('hidden');
+                });
+            });
+            window.courseData = data.course_data;
+            window.this_sem = data.this_sem;
+
+            document.getElementById('comp_credits').value = data.total_credits[0];
+            document.getElementById('curr_cgpa').value = data.total_credits[1];
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('logout-button').addEventListener('click', function() {
+    const csrf_token = document.querySelector('input[name="csrf_token"]').value;
+
+    fetch('/logout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf_token
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Logged out successfully!');
+            window.location.href = '/';
+        } else {
+            alert('Logout failed!');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+const csrf_token = document.querySelector('input[name="csrf_token"]').value;
+const addedCourses = new Set();
+const thisSemCourses = new Set();
+
+function createBox(courseName, courseCgpa, type) {
+    const existingBox = document.querySelector(`.box[data-course="${courseName}"][data-type="${type}"]`);
+    if (existingBox) {
+        alert(`${courseName} is already added.`);
+        return;
+    }
+
+    if (type === 'improve') {
+        addedCourses.add(courseName);
+    } else if (type === 'this-semester') {
+        thisSemCourses.add(courseName);
+    }
+
+    const newBox = document.createElement('div');
+    newBox.className = 'box';
+    newBox.dataset.course = courseName;
+    newBox.dataset.type = type;
+
+    newBox.innerHTML = `<strong>${courseName}</strong>` + 
+                        (courseCgpa ? `: CGPA ${courseCgpa}` : '');
+
+    const cgpaInput = document.createElement('input');
+    cgpaInput.type = 'number';
+    cgpaInput.min = 0;
+    cgpaInput.max = 4;
+    cgpaInput.step = 0.01;
+    cgpaInput.placeholder = 'Enter new CGPA';
+    cgpaInput.style.display = 'block';
+    cgpaInput.style.marginTop = '10px';
+    cgpaInput.className = 'cgpa-input';
+    cgpaInput.value = courseCgpa || '';
+
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'deleteButton';
+    deleteButton.innerText = 'Delete';
+    deleteButton.addEventListener('click', function() {
+        newBox.remove();
+        if (type === 'improve') {
+            addedCourses.delete(courseName);
+            const courseItem = document.querySelector(`.course-item[data-course="${courseName}"]`);
+            if (courseItem) {
+                courseItem.classList.remove('clicked');
+            }
+            if (addedCourses.size === 0) {
+                document.getElementById('boxContainer').classList.add('hidden');
+            }
+        } else if (type === 'this-semester') {
+            thisSemCourses.delete(courseName);
+            const semItem = document.querySelector(`.this-sem-item[data-course="${courseName}"]`);
+            if (semItem) {
+                semItem.classList.remove('clicked');
+            }
+            if (thisSemCourses.size === 0) {
+                document.getElementById('boxContainer2').classList.add('hidden');
+            }
+        }
+    });
+
+    newBox.appendChild(cgpaInput);
+    newBox.appendChild(deleteButton);
+
+    if (type === 'improve') {
+        document.getElementById('boxContainer').appendChild(newBox);
+    } else if (type === 'this-semester') {
+        document.getElementById('boxContainer2').appendChild(newBox);
+    }
+}
+
+function calculateCgpa(type) {
+    const cgpaData = {};
+    const thisSemData = {};
+
+    document.querySelectorAll(`.box[data-type="${type}"]`).forEach(box => {     
+        const courseName = box.dataset.course;
+        const newCgpa = box.querySelector('.cgpa-input').value;
+
+        if (newCgpa && !isNaN(newCgpa) && newCgpa >= 0 && newCgpa <= 4) {
+            if (type === 'improve') {
+                cgpaData[courseName] = [parseFloat(newCgpa), window.courseData[courseName][1]]; 
+            } else if (type === 'this-semester') {
+                window.this_sem[courseName][0] = newCgpa;
+                thisSemData[courseName] = [parseFloat(newCgpa), parseInt(window.this_sem[courseName][1], 10)];
+            }
+        } else {
+            alert(`Invalid CGPA value for ${courseName}. Please enter a number between 0 and 4.`);
+        }
+    });
+
+    const imp = { cgpa_data: cgpaData };
+    const sem = { this_sem_data: thisSemData };
+    const mergedData = { ...window.courseData, ...cgpaData };
+
+    fetch('/calculate_cgpa', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf_token
+        },
+        body: JSON.stringify({
+            imp: imp,
+            sem: sem,
+            mergedData: mergedData
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('CGPA calculation failed!');
+        } else {
+            if (type === 'improve') {
+                const newCgpaElement = document.getElementById('new-cgpa');
+                newCgpaElement.textContent = `New CGPA: ${data.new_cgpa}`;
+                newCgpaElement.classList.add('pretty-box');
+            } else {
+                const newSemCgpaElement = document.getElementById('new-sem-cgpa');
+                newSemCgpaElement.textContent = `New Semester CGPA: ${data.new_cgpa}`;
+                newSemCgpaElement.classList.add('pretty-box');
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+document.getElementById('target-cgpa-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const department = document.getElementById('department').value;
+    const comp_credits = document.getElementById('comp_credits').value;
+    const curr_cgpa = document.getElementById('curr_cgpa').value;
+    const target_gpa = document.getElementById('target_gpa').value;
+
+    fetch('/check_target_cgpa', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf_token
+        },
+        body: JSON.stringify({
+            department: department,
+            comp_credits: parseInt(comp_credits),
+            curr_cgpa: parseFloat(curr_cgpa),
+            target_gpa: parseFloat(target_gpa)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const resultDiv = document.getElementById('target-gpa-result');
+        resultDiv.classList.add('pretty-box');
+
+        resultDiv.innerHTML = '';
+        if(data.result == 'invalid'){ 
+            resultDiv.textContent = 'Invalid target CGPA';
+        }else if(data.result === 'not possible') {
+           resultDiv.textContent = `Achieving the target CGPA is not possible. You need to have at least ${data.required_gpa} GPA to reach that target CGPA. Please consider repeating some courses.`;
+        }else if(data.result == 'Passed'){
+            resultDiv.textContent = "You need to get some negative CGPA to reach that target CGPA ;)."
+        }else {
+            resultDiv.textContent = `It is possible to achieve your target CGPA. You need to maintain an average GPA of ${data.required_gpa} in the remaining semesters.`;
+           
+            
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+
     </script>
 </body>
 </html>

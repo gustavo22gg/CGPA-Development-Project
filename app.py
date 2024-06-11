@@ -144,12 +144,15 @@ def check_target_cgpa():
     now = totalTarget - credCgpa
     possible = now / remaining_sem
 
-   
+    print(round(possible, 2))
     if round(possible, 2) > 4:
         rem_cgpa = remaining_sem * 4
         target_gpa_creds = total_creds * target_gpa
         minimum = (target_gpa_creds - rem_cgpa) / comp_credits
         return jsonify({'result': 'not possible', 'required_gpa': round(minimum, 2)})
+    elif round(possible, 2) <= 0:
+        return jsonify({'result': 'Passed', 'required_gpa': round(possible, 2)})
+       
     else:
         return jsonify({'result': 'possible', 'required_gpa': round(possible, 2)})
 
