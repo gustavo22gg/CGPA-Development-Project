@@ -130,12 +130,41 @@ def check_target_cgpa():
     if target_gpa > 4:
         return jsonify({'result': 'invalid'}), 200
 
-    if department not in ['cs', 'cse']:
+    if department not in ['cs', 'cse', 'Archi', 'EEE', 'BBA', 'Econ', 'LLB (Hons)', 'Math', 'Microbio',
+                          'Pharmacy', 'Physics', 'Anth', 'APE', 'Biotech', 'BA(Eng)', 'ECE']:
         return jsonify({'error': 'Invalid department'}), 400
 
     if department == 'cs':
         total_creds = 124
-    elif department == 'cse':
+    elif department == 'cse': 
+        total_creds = 136
+    elif department == 'Archi': 
+        total_creds = 207
+    elif department == 'EEE': 
+        total_creds = 136
+    elif department == 'BBA':  
+        total_creds = 130
+    elif department == 'Econ':  
+        total_creds = 120
+    elif department == 'LLB (Hons)':  
+        total_creds = 135
+    elif department == 'Math':
+        total_creds = 127
+    elif department == 'Microbio':  
+        total_creds = 136
+    elif department == 'Pharmacy': 
+        total_creds = 164
+    elif department == 'Physics':  
+        total_creds = 132
+    elif department == 'Anth': 
+        total_creds = 120
+    elif department == 'APE':  
+        total_creds = 130
+    elif department == 'Biotech':
+        total_creds = 136
+    elif department == 'BA(Eng)':
+        total_creds = 120
+    elif department == 'ECE':
         total_creds = 136
 
     remaining_sem = total_creds - comp_credits
