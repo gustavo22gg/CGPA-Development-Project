@@ -1,9 +1,10 @@
-/<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course CGPA Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -155,6 +156,7 @@
         .logout-container {
             display: flex;
             justify-content: flex-end;
+            margin-bottom: 20px;
         }
         .pretty-box {
             padding: 15px;
@@ -269,7 +271,10 @@
         </div>
     </div>
     <footer>
-        &copy; 2024, Shadman
+        &copy; 2024, Shadman <br>
+        <a href="mailto:shadmansiam18@gmail.com"><i class="fa-brands fa-gmail"></i></a> <br>
+        <!-- <a href="https://www.linkedin.com/in/shadman-nasir-b264aa235/"><i class="fa-brands fa-linkedin"></a> <br>
+        <a href="https://www.instagram.com/shadmannasirrr/"><i class="fa-brands fa-instagram"></i></a> -->
     </footer>
     <script>
         document.getElementById('login-form').addEventListener('submit', function(event) {
@@ -468,6 +473,7 @@
             });
 
             const imp = { cgpa_data: cgpaData };
+
             const sem = { this_sem_data: thisSemData };
             const mergedData = { ...window.courseData, ...cgpaData };
 
@@ -542,4 +548,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
