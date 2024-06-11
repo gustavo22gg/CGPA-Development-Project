@@ -143,12 +143,25 @@
             color: #333;
         }
         footer {
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 10px;
             background-color: #f0f2f5;
             color: #555;
             border-top: 1px solid #ccc;
             margin-top: auto;
+        }
+        footer a {
+            color: #555;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        footer a:hover {
+            color: #333;
+        }
+        footer i {
+            color: gray;
         }
         .hidden {
             display: none;
@@ -271,10 +284,10 @@
         </div>
     </div>
     <footer>
-        &copy; 2024, Shadman <br>
-        <a href="mailto:shadmansiam18@gmail.com"><i class="fa-brands fa-gmail"></i></a> <br>
-        <!-- <a href="https://www.linkedin.com/in/shadman-nasir-b264aa235/"><i class="fa-brands fa-linkedin"></a> <br>
-        <a href="https://www.instagram.com/shadmannasirrr/"><i class="fa-brands fa-instagram"></i></a> -->
+        &copy; 2024, Shadman
+        <a href="mailto:shadmansiam18@gmail.com"><i class="fas fa-envelope"></i></a>
+        <a href="https://www.linkedin.com/in/shadman-nasir-b264aa235/"><i class="fab fa-linkedin"></i></a>
+        <a href="https://www.instagram.com/shadmannasirrr/"><i class="fab fa-instagram"></i></a>
     </footer>
     <script>
         document.getElementById('login-form').addEventListener('submit', function(event) {
@@ -488,6 +501,7 @@
                     sem: sem,
                     mergedData: mergedData
                 })
+
             })
             .then(response => response.json())
             .then(data => {
