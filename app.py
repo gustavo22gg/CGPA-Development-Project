@@ -179,7 +179,7 @@ def get_total_credits(department):
         'cse': 136,
         'archi': 207,
         'eee': 136,
-        'BBA': 130,
+        'bba': 130,
         'econ': 120,
         'llb': 135,
         'math': 127,
