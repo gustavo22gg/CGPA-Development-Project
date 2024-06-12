@@ -227,7 +227,7 @@
             <button id="logout-button" class="hidden">Logout</button>
         </div>
         <div id="targetgpa" class="hidden section">
-            <h2>Check your Target CGPA</h2>
+            <h2>Check Your Targeted CGPA</h2>
             <form id="target-cgpa-form" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
@@ -259,16 +259,16 @@
                     <input type="number" step="0.01" id="curr_cgpa" name="curr_cgpa" required>
                 </div>
                 <div class="form-group">
-                    <label for="target_gpa">Target CGPA:</label>
+                    <label for="target_gpa">Targeted CGPA:</label>
                     <input type="number" step="0.01" id="target_gpa" name="target_gpa" required>
                 </div>
-                <button type="submit">Check Target CGPA</button>
+                <button type="submit">Check Targeted CGPA</button>
             </form>
             <div id="target-gpa-result"></div>
         </div>
 
         <div id="course-data" class="hidden section">
-            <h2>Improve your courses grades</h2>
+            <h2>Improve Your Grades</h2>
             <ul id="course-list" class="course-list"></ul>
             <div id="boxContainer" class="box-container hidden"></div>
             <button class="calculate-cgpa" onclick="calculateCgpa('improve')">Calculate CGPA</button>
@@ -276,7 +276,7 @@
         </div>
 
         <div id="this-semester-courses" class="hidden section">
-            <h2>Calculate CGPA for this semester</h2>
+            <h2>Calculate CGPA For Current semester</h2>
             <ul id="this-semester-list" class="this-semester-list"></ul>
             <div id="boxContainer2" class="box-container hidden"></div>
             <button class="calculate-cgpa" onclick="calculateCgpa('this-semester')">Calculate CGPA</button>
