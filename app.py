@@ -177,20 +177,20 @@ def get_total_credits(department):
     dept_credits = {
         'cs': 124,
         'cse': 136,
-        'Archi': 207,
-        'EEE': 136,
+        'archi': 207,
+        'eee': 136,
         'BBA': 130,
-        'Econ': 120,
-        'LLB (Hons)': 135,
-        'Math': 127,
-        'Microbio': 136,
-        'Pharmacy': 164,
-        'Physics': 132,
-        'Anth': 120,
-        'APE': 130,
-        'Biotech': 136,
-        'BA(Eng)': 120,
-        'ECE': 136
+        'econ': 120,
+        'llb': 135,
+        'math': 127,
+        'microbio': 136,
+        'pharmacy': 164,
+        'physics': 132,
+        'anth': 120,
+        'ape': 130,
+        'biotech': 136,
+        'baeng': 120,
+        'ece': 136
     }
     return dept_credits.get(department)
 
