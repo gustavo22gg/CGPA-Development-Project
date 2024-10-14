@@ -5,7 +5,7 @@ A comprehensive CGPA Tracking System designed to help students monitor their aca
 **Targeted CGPA**
 Upon logging in, users can check their targeted CGPA to see if their goals are achievable.
 
-<img width="686" alt="Targeted CGPA" src="https://github.com/user-attachments/assets/b4c4939f-0354-4640-9c2b-1ceb513a2cc0">
+<img width="692" alt="Targeted CGPA" src="https://github.com/user-attachments/assets/281c3d94-3fcc-45fe-99f7-189d176f5ccd">
 
 -Input your completed credits, current CGPA, and target CGPA.
 -The app calculates and displays the average GPA you need to maintain across the remaining semesters to hit your goal.
@@ -13,7 +13,7 @@ Upon logging in, users can check their targeted CGPA to see if their goals are a
 **Improve Your Grades**
 Scrolling further down, users can explore the "Improve Your Grades" section.
 
-<img width="652" alt="Improve Your Grades" src="https://github.com/user-attachments/assets/5ecb086b-75d5-4365-bdc4-63c5beb5ae17">
+<img width="693" alt="Improve Your Grades" src="https://github.com/user-attachments/assets/0bcb3a5b-4081-408e-979f-a5a8585846d0">
 
 -View individual course grades to understand areas for improvement.
 -Adjust grades to simulate potential CGPA changes and plan better for future semesters.
@@ -21,7 +21,7 @@ Scrolling further down, users can explore the "Improve Your Grades" section.
 **Calculate CGPA for Current Semester**
 This section helps users calculate the CGPA for the current semester.
 
-<img width="627" alt="current cgpa" src="https://github.com/user-attachments/assets/7e4d2585-4d5e-4f86-baf7-12eb70a32374">
+<img width="681" alt="current cgpa" src="https://github.com/user-attachments/assets/8169e2ec-9b23-42ef-88b7-bd4a1a8b5cf5">
 
 -Input current semester courses.
 -Calculate your semester GPA and analyze its impact on your overall CGPA.
