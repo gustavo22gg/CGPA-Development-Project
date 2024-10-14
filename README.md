@@ -7,7 +7,7 @@ Upon logging in, users can check their targeted CGPA to see if their goals are a
 
 <img width="692" alt="Targeted CGPA" src="https://github.com/user-attachments/assets/281c3d94-3fcc-45fe-99f7-189d176f5ccd">
 
--Input your completed credits, current CGPA, and target CGPA.
+- Input your completed credits, current CGPA, and target CGPA.
 -The app calculates and displays the average GPA you need to maintain across the remaining semesters to hit your goal.
 
 **Improve Your Grades**
