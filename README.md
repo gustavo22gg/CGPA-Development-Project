@@ -2,7 +2,7 @@
 
 - A comprehensive CGPA Tracking System designed to help students monitor their academic progress and set realistic GPA goals. This project automates data collection from the university portal, providing users with valuable insights into their academic performance and required improvements.
 
-**🚀 Features**/n
+**🚀 Features** 
 **Targeted CGPA**
 Upon logging in, users can check their targeted CGPA to see if their goals are achievable.
 
