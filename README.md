@@ -43,3 +43,11 @@ Upon logging in, users can check their targeted CGPA to see if their goals are a
 - Build a mobile app using React Native or Flutter for cross-platform support.
 - Integrate with real-time university APIs for dynamic updates.
 - Migrate to a cloud-based database for scalability.
+
+**📊 Analytics**
+
+- I have implemented Google Analytics to monitor user activity and gain insights into how students engage with the platform.
+- As of now, the app has attracted 2,000 total users, with 15,000 events and 3,400 views.
+
+![462355701_1663092621204241_4765279233039030657_n](https://github.com/user-attachments/assets/770892d1-e23e-452e-947b-c382d7c1608b)
+
