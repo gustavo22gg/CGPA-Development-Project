@@ -1,5 +1,6 @@
 **🎓 CGPA Tracker App**
-A comprehensive CGPA Tracking System designed to help students monitor their academic performance and target CGPA goals efficiently. This project offers personalized GPA tracking features with clear insights into required performance improvements across semesters.
+
+- A comprehensive CGPA Tracking System designed to help students monitor their academic progress and set realistic GPA goals. This project automates data collection from the university portal, providing users with valuable insights into their academic performance and required improvements.
 
 **🚀 Features**
 **Targeted CGPA**
@@ -8,7 +9,7 @@ Upon logging in, users can check their targeted CGPA to see if their goals are a
 <img width="692" alt="Targeted CGPA" src="https://github.com/user-attachments/assets/281c3d94-3fcc-45fe-99f7-189d176f5ccd">
 
 - Input your completed credits, current CGPA, and target CGPA.
--The app calculates and displays the average GPA you need to maintain across the remaining semesters to hit your goal.
+- The app calculates and displays the average GPA you need to maintain across the remaining semesters to hit your goal.
 
 **Improve Your Grades**
 Scrolling further down, users can explore the "Improve Your Grades" section.
