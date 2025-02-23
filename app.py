@@ -158,6 +158,9 @@ def process_grade_sheet(username, password):
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
     download_path = os.getcwd()
     prefs = {"download.default_directory": download_path}
     options.add_experimental_option("prefs", prefs)
@@ -228,6 +231,8 @@ def process_schedule(username, password):
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
     options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
     driver = webdriver.Chrome(options=options)
     schedule_data = None
