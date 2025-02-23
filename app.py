@@ -40,7 +40,22 @@ Talisman(app, content_security_policy={
 ########################################
 # HELPER FUNCTIONS
 ########################################
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
+def get_driver():
+    """
+    Returns a Chrome WebDriver instance configured to run inside Docker.
+    """
+    chrome_options = Options()
+    chrome_options.binary_location = "/usr/bin/chromium"  # Path to Chromium inside Docker
+    chrome_options.add_argument("--headless")  # No UI
+    chrome_options.add_argument("--no-sandbox")  # Required for Docker
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Prevents memory issues
+
+    service = Service("/usr/bin/chromedriver")  # Path to ChromeDriver in Docker
+    return webdriver.Chrome(service=service, options=chrome_options)
 def get_total_credits(department):
     dept_credits = {
         'cs': 124,
@@ -162,7 +177,8 @@ def process_grade_sheet(username, password):
     prefs = {"download.default_directory": download_path}
     options.add_experimental_option("prefs", prefs)
     
-    driver = webdriver.Chrome(options=options)
+    driver = get_driver()
+
     pdf_filename = None
 
     try:
@@ -211,6 +227,8 @@ def process_grade_sheet(username, password):
 
     except Exception as e:
         app.logger.error(f"Error in processing grade sheet: {e}")
+        import traceback
+        traceback.print_exc()
 
     finally:
         driver.quit()
@@ -229,7 +247,8 @@ def process_schedule(username, password):
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
-    driver = webdriver.Chrome(options=options)
+    driver = get_driver()
+
     schedule_data = None
     try:
         driver.get("https://sso.bracu.ac.bd/realms/bracu/protocol/openid-connect/auth?client_id=slm&redirect_uri=https%3A%2F%2Fconnect.bracu.ac.bd%2F")
