@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Targeted CGPA Calculator</title>
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- CSRF token -->
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
+  <style>
+/* Global Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* CSS Custom Properties */
+:root {
+  --primary-color:  #7a5fd4;
+  --secondary-color: #7a5fd4;
+  --background-color: #f8f9fa;
+  --card-bg: #f0f0f0;
+  --text-color: #333;
+  --accent-color: #007bff;
+  --error-color: #dc3545;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --light-bg: #7a5fd4;
+  --logout-bg: #ff6b6b;
+  --logout-hover: #ff4c4c;
+}
+
+/* Base Styles */
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  padding: 20px;
+}
+
+/* DESKTOP STYLES */
+/* Fixed Welcome Bar with Logout Button inside */
+.welcome-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 60px;
+  background: linear-gradient(90deg, #7a5fd4, #5a3db4);
+  color: white;
+  font-size: 1.4rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centers the text */
+  padding: 10px 15px;
+  z-index: 1000;
+  text-align: center; /* Ensures text is centered */
+}
+
+.welcome-text {
+  flex: 1;
+  text-align: center;
+  padding: 0 10px;
+}
+
+/* Logout Button – in desktop, it sits inside the welcome bar */
+.logout-btn {
+  position: absolute;
+  right: 10px;
+  bottom: 20px;
+  transform: translateY(50%);
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: 10px;
+  background: #e63946;
+  width: auto;
+  min-width: 80px;
+  max-width: 120px;
+  text-align: center;
+  z-index: 10;
+}
+
+/* Dashboard Container and Other Elements */
+.dashboard-container {
+  margin-top: 100px; /* Gives room for the fixed welcome bar */
+  width: 90%;
+  max-width: 1000px;
+  margin: 100px auto 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.section-box {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 16px var(--shadow-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.section-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px var(--shadow-color);
+}
+
+.section-header {
+  background-color: transparent !important; /* Removes the background */
+  color: var(--primary-color); /* Keeps the text color */
+  padding: 20px;
+  font-size: 1.5rem;
+  font-weight: 500;
+  text-align: center;
+  border-bottom: 2px solid var(--primary-color); /* Optional: adds a subtle underline */
+}
+
+
+.section-content {
+  padding: 25px;
+}
+
+h2 {
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+.description {
+  margin-bottom: 20px;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+form {
+  margin: 20px 0;
+}
+label {
+  display: block;
+  margin: 10px 0 5px;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+input, select {
+  width: 90%;
+  padding: 12px;
+  margin: 5px auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border 0.3s ease;
+}
+input:focus, select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+button {
+  background: var(--accent-color);
+  border: none;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 15px;
+  transition: background 0.3s ease;
+}
+button:hover {
+  background: #0056b3;
+}
+.calc-btn {
+  background: #6c5ce7;
+  padding: 12px 24px;
+  border-radius: 4px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 15px;
+  transition: background 0.3s ease;
+}
+.calc-btn:hover {
+  background: #5a4fcf;
+}
+#target-result, #new-cgpa, #schedule-new-cgpa {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-align: center;
+}
+.new-cgpa-box, .target-result-box, .schedule-cgpa-box {
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 4px;
+  background-color: var(--light-bg);
+  color: #fff;
+}
+
+.course-list, .schedule-course-list {
+  list-style: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.course-list li, .schedule-course-list li {
+  padding: 12px 15px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.course-list li:last-child, .schedule-course-list li:last-child {
+  border-bottom: none;
+}
+.course-list li:hover, .schedule-course-list li:hover {
+  background: #f4f4f4;
+}
+.course-list li.selected, .schedule-course-list li.selected {
+  background-color: #e2e2e2;
+}
+#improve-container, #schedule-improve-container {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 15px;
+}
+.improve-box, .schedule-improve-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  margin: 8px auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.improve-box:hover, .schedule-improve-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+.improve-box input, .schedule-improve-box input {
+  width: 60%;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border 0.3s ease;
+}
+.improve-box input:focus, .schedule-improve-box input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+.delete-btn {
+  background: var(--error-color);
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 0.9rem;
+  transition: background 0.3s ease;
+}
+.delete-btn:hover {
+  background: #c82333;
+}
+
+
+/* ✅ MOBILE STYLES */
+@media screen and (max-width: 768px) {
+  /* Welcome Bar */
+  .welcome-bar {
+    position: relative;  /* Ensures logout button is positioned inside */
+    width: 100%;
+    text-align: center;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Logout Button - Positioned at the bottom border of the welcome bar */
+  .logout-btn {
+    position: absolute;
+    right: 10px;  /* Stays at the right */
+    bottom: 20px;  /* Moves to the bottom border */
+    transform: translateY(50%); /* Adjusts alignment slightly below the border */
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 10px;
+    background: #e63946;
+    width: auto;
+    min-width: 80px;
+    max-width: 120px;
+    text-align: center;
+    z-index: 10;
+  }
+
+
+
+/* ✅ REMOVE GAP BELOW WELCOME BAR */
+.dashboard-container {
+  margin-top: 10px; /* Removed extra space */
+  width: 95%;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-box {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 15px;
+}
+
+.section-header {
+  font-size: 1.2rem;
+  padding: 12px;
+  text-align: center;
+}
+
+input, select {
+  width: 100%;
+  font-size: 0.9rem;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  background: #6c5ce7;
+  color: white;
+  cursor: pointer;
+}
+
+.improve-box, .schedule-improve-box {
+  width: 100%;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.course-list, .schedule-course-list {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 5px;
+  border-radius: 6px;
+}
+
+#target-result, #new-cgpa, #schedule-new-cgpa {
+  font-size: 1rem;
+  text-align: center;
+  padding: 10px;
+  border-radius: 6px;
+  color: black;
+  font-weight: bold;
+}
+
+.new-cgpa-box, .target-result-box, .schedule-cgpa-box {
+  background: none;
+  color: black;
+  font-weight: bold;
+}
+
+.improve-box input, .schedule-improve-box input {
+  width: 60%;
+  padding: 8px;
+  font-size: 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.delete-btn {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  background: red;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+}
+
+  </style>
+</head>
+<body>
+  <!-- Fixed Welcome Bar with Logout Button -->
+  <div class="welcome-bar">
+    Welcome, {{ student_info.Name or "user" }}! Let’s level up your CGPA.
+    <form method="POST" action="/logout" style="display:inline;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="logout-btn">
+        🚪 Logout
+      </button>
+    </form>
+
+  </div>
+
+  <!-- Dashboard Container -->
+  <div class="dashboard-container">
+    
+    <!-- Targeted CGPA Calculator Section -->
+    <div class="section-box" id="target-cgpa-box">
+      <div class="section-header">Check Your Targeted CGPA</div>
+      <div class="section-content">
+        <p class="description">
+          Enter your target CGPA to determine the GPA you need for your remaining credits.
+        </p>
+        <form id="target-form" method="POST" action="/check_target_cgpa">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label for="department">Department:</label>
+          <select id="department" name="department">
+            <option value="cs">CS</option>
+            <option value="cse">CSE</option>
+            <option value="archi">Archi</option>
+            <option value="eee">EEE</option>
+            <option value="bba">BBA</option>
+            <option value="econ">Economics</option>
+            <option value="llb">LLB</option>
+            <option value="math">Mathematics</option>
+            <option value="microbio">Microbiology</option>
+            <option value="pharmacy">Pharmacy</option>
+            <option value="physics">Physics</option>
+            <option value="anth">Anthropology</option>
+            <option value="ape">Applied Physics and Electronics</option>
+            <option value="biotech">Biotechnology</option>
+            <option value="baeng">English</option>
+            <option value="ece">ECE</option>
+          </select>
+          <br>
+          <label for="comp_credits">Completed Credits:</label>
+          <input type="number" id="comp_credits" name="comp_credits" value="{{ completed_credits }}" readonly>
+          <br>
+          <label for="curr_cgpa">Current CGPA:</label>
+          <input type="number" id="curr_cgpa" name="curr_cgpa" value="{{ cgpa }}" step="0.01" readonly>
+          <br>
+          <label for="target_gpa">Targeted CGPA:</label>
+          <input type="number" id="target_gpa" name="target_gpa" step="0.01" required>
+          <br>
+          <button type="submit" class="calc-btn">Calculate Targeted CGPA</button>
+        </form>
+        <div id="target-result"></div>
+      </div>
+    </div>
+    
+    <!-- Improve Your Grades Section -->
+    <div class="section-box" id="improve-grades-box">
+      <div class="section-header">Improve Your Grades</div>
+      <div class="section-content">
+        <p class="description">Click on a course code to update its grade.</p>
+        <ul class="course-list" id="improve-course-list">
+          <!-- Course codes will be listed vertically -->
+        </ul>
+        <div id="improve-container"></div>
+        <button id="calculate-improve-btn" class="calc-btn">Calculate New CGPA</button>
+        <div id="new-cgpa"></div>
+      </div>
+    </div>
+    
+    <!-- Course Schedule Section -->
+    <div class="section-box" id="course-schedule-box">
+      <div class="section-header">This Semester</div>
+      <div class="section-content">
+        <p class="description">
+          Select a course to calulate this semester GPA.
+        </p>
+        <!-- List unique courses from schedule_data -->
+        <ul class="schedule-course-list" id="schedule-course-list">
+          <!-- Populated by JavaScript -->
+        </ul>
+        <!-- Container for boxes created from schedule selection -->
+        <div id="schedule-improve-container"></div>
+        <button id="calculate-schedule-cgpa-btn" class="calc-btn">Calculate Semester CGPA</button>
+        <div id="schedule-new-cgpa"></div>
+      </div>
+    </div>
+    
+  </div>
+
+  <script>
+
+     window.addEventListener("scroll", function () {
+    const welcomeBar = document.querySelector(".welcome-bar");
+    if (window.scrollY > 10) {  // If the user scrolls down
+      welcomeBar.classList.add("shadow");  // Add shadow effect
+    } else {  // If the user scrolls back to the top
+      welcomeBar.classList.remove("shadow");  // Remove shadow effect
+    }
+  });
+    // Retrieve CSRF token from meta tag
+    const csrf_token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // --- Improve Your Grades Section (existing) ---
+    window.courseData = {{ courses|tojson }};
+    const improveCourses = window.courseData.filter(course => parseFloat(course[4]) < 4);
+    const courseListUl = document.getElementById("improve-course-list");
+    
+    improveCourses.forEach(course => {
+      const li = document.createElement("li");
+      li.textContent = `${course[0]} (Grade: ${course[4]})`;
+      li.addEventListener("click", function() {
+        if (!li.classList.contains("selected")) {
+          li.classList.add("selected");
+          const box = document.createElement("div");
+          box.className = "improve-box";
+          box.id = "box-" + course[0];
+          const label = document.createElement("span");
+          label.textContent = course[0];
+          const input = document.createElement("input");
+          input.type = "number";
+          input.min = 0;
+          input.max = 4;
+          input.step = 0.01;
+          input.placeholder = "New Grade";
+          input.value = course[4]; // default to current grade
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete-btn";
+          deleteBtn.textContent = "Delete";
+          deleteBtn.addEventListener("click", function() {
+            box.remove();
+            li.classList.remove("selected");
+          });
+          box.appendChild(label);
+          box.appendChild(input);
+          box.appendChild(deleteBtn);
+          document.getElementById("improve-container").appendChild(box);
+        }
+      });
+      courseListUl.appendChild(li);
+    });
+    
+    document.getElementById("calculate-improve-btn").addEventListener("click", function() {
+      const updated = {};
+      const boxes = document.querySelectorAll(".improve-box");
+      
+      for (let box of boxes) {
+        const courseCode = box.id.replace("box-", "");
+        const newGrade = parseFloat(box.querySelector("input").value);
+        if (newGrade > 4) {
+          alert("New grade for course " + courseCode + " must be ≤ 4.");
+          return;
+        }
+        const orig = window.courseData.find(c => c[0] === courseCode);
+        if (orig) {
+          updated[courseCode] = [newGrade, orig[2]];
+        }
+      }
+      
+      const mergedData = {};
+      window.courseData.forEach(course => {
+        mergedData[course[0]] = [course[4], course[2]];
+      });
+      for (const code in updated) {
+        mergedData[code] = updated[code];
+      }
+      
+      fetch('/calculate_cgpa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrf_token
+        },
+        body: JSON.stringify({
+          imp: { cgpa_data: updated },
+          sem: { this_sem_data: {} },
+          mergedData: mergedData
+        })
+      })
+      .then(response => {
+         if (!response.ok) return response.text().then(text => { throw new Error(text) });
+         return response.json();
+      })
+      .then(data => {
+         if (data.error) {
+           alert('CGPA calculation failed!');
+         } else {
+           const newCgpaElement = document.getElementById('new-cgpa');
+           newCgpaElement.textContent = `New CGPA: ${data.new_cgpa}`;
+           newCgpaElement.classList.add('new-cgpa-box');
+         }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+    
+    // --- Course Schedule Section ---
+    window.scheduleData = {{ schedule_data|tojson }};
+    // Build a list of unique courses (by courseCode) and exclude those ending with "L"
+    const uniqueScheduleCourses = [];
+    window.scheduleData.forEach(course => {
+      if (!course.courseCode.endsWith("L") && !uniqueScheduleCourses.find(c => c.courseCode === course.courseCode)) {
+        uniqueScheduleCourses.push(course);
+      }
+    });
+    const scheduleCourseListUl = document.getElementById("schedule-course-list");
+    
+    uniqueScheduleCourses.forEach(course => {
+      const li = document.createElement("li");
+      // Show only the course name (courseCode)
+      li.textContent = course.courseCode;
+      li.addEventListener("click", function() {
+        if (!li.classList.contains("selected")) {
+          li.classList.add("selected");
+          // Create a box similar to the improve-box
+          const box = document.createElement("div");
+          box.className = "schedule-improve-box";
+          box.id = "sbox-" + course.courseCode;
+          const label = document.createElement("span");
+          label.textContent = course.courseCode;
+          const input = document.createElement("input");
+          input.type = "number";
+          input.min = 0;
+          input.max = 4;
+          input.step = 0.01;
+          input.placeholder = "New Grade";
+          // Prepopulate with grade from courseData if available
+          const orig = window.courseData.find(c => c[0] === course.courseCode);
+          input.value = orig ? orig[4] : "";
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete-btn";
+          deleteBtn.textContent = "Delete";
+          deleteBtn.addEventListener("click", function() {
+            box.remove();
+            li.classList.remove("selected");
+          });
+          box.appendChild(label);
+          box.appendChild(input);
+          box.appendChild(deleteBtn);
+          document.getElementById("schedule-improve-container").appendChild(box);
+        }
+      });
+      scheduleCourseListUl.appendChild(li);
+    });
+    
+    document.getElementById("calculate-schedule-cgpa-btn").addEventListener("click", function() {
+      const updated = {};
+      const boxes = document.querySelectorAll(".schedule-improve-box");
+      
+      for (let box of boxes) {
+        const courseCode = box.id.replace("sbox-", "");
+        const newGrade = parseFloat(box.querySelector("input").value);
+        if (newGrade > 4) {
+          alert("New grade for course " + courseCode + " must be ≤ 4.");
+          return;
+        }
+        const orig = window.courseData.find(c => c[0] === courseCode);
+        if (orig) {
+          updated[courseCode] = [newGrade, orig[2]];
+        }
+      }
+      
+      const mergedData = {};
+      window.courseData.forEach(course => {
+        mergedData[course[0]] = [course[4], course[2]];
+      });
+      for (const code in updated) {
+        mergedData[code] = updated[code];
+      }
+      
+      fetch('/calculate_cgpa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrf_token
+        },
+        body: JSON.stringify({
+          imp: { cgpa_data: updated },
+          sem: { this_sem_data: {} },
+          mergedData: mergedData
+        })
+      })
+      .then(response => {
+         if (!response.ok) return response.text().then(text => { throw new Error(text) });
+         return response.json();
+      })
+      .then(data => {
+         if (data.error) {
+           alert('CGPA calculation failed!');
+         } else {
+           const newCgpaElement = document.getElementById('schedule-new-cgpa');
+           newCgpaElement.textContent = `New CGPA: ${data.new_cgpa}`;
+           newCgpaElement.classList.add('schedule-cgpa-box');
+         }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+    
+    // --- Targeted CGPA Calculator form submission remains unchanged ---
+    document.getElementById("target-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const department = document.getElementById("department").value;
+      const comp_credits = parseFloat(document.getElementById("comp_credits").value);
+      const curr_cgpa = parseFloat(document.getElementById("curr_cgpa").value);
+      const target_gpa = parseFloat(document.getElementById("target_gpa").value);
+      fetch("/check_target_cgpa", {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json",
+           "X-CSRFToken": csrf_token
+         },
+         body: JSON.stringify({
+           department: department,
+           comp_credits: comp_credits,
+           curr_cgpa: curr_cgpa,
+           target_gpa: target_gpa
+         })
+      })
+      .then(response => {
+         if (!response.ok) return response.text().then(text => { throw new Error(text) });
+         return response.json();
+      })
+      .then(data => { 
+        const resultDiv = document.getElementById("target-result");
+        resultDiv.classList.add('target-result-box');
+
+        if (data.error) {
+            resultDiv.textContent = "Error: " + data.error;
+        } else if (data.result === "invalid") {
+            resultDiv.textContent = "Targeted CGPA is invalid (must be ≤ 4).";
+        } else {
+            if (data.required_gpa > 4) {
+                resultDiv.textContent = "You need to repeat some courses to reach that target CGPA.";
+            } else {
+                resultDiv.textContent = "It is possible to achieve your target CGPA. You need to maintain an average GPA of " + data.required_gpa + " in the remaining semester.";
+            }
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("target-result").textContent = "Error: " + error;
+    });
+      
+    });
+    
+    
+  </script>
+</body>
+</html>
