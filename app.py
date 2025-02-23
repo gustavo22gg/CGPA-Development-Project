@@ -1,3 +1,4 @@
+
 import os
 import time
 import re
@@ -167,7 +168,7 @@ def process_grade_sheet(username, password):
     prefs = {"download.default_directory": download_path}
     options.add_experimental_option("prefs", prefs)
     
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome('/usr/local/bin/chromedriver', options=chrome_options)
     pdf_filename = None
 
     try:
@@ -239,7 +240,7 @@ def process_schedule(username, password):
     options.binary_location = "/usr/bin/google-chrome"
 
     options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome('/usr/local/bin/chromedriver', options=chrome_options)
     schedule_data = None
     try:
         driver.get("https://sso.bracu.ac.bd/realms/bracu/protocol/openid-connect/auth?client_id=slm&redirect_uri=https%3A%2F%2Fconnect.bracu.ac.bd%2F")
