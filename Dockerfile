@@ -40,4 +40,4 @@ COPY . .
 EXPOSE 5000
 
 # Run the Flask application.
-CMD ["python", "app.py"]
+CMD ["gunicorn", "-b", "0.0.0.0:10000", "--timeout", "120", "app:app"]
