@@ -9,6 +9,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     chromium \
     chromium-driver \
+    fonts-liberation \
+    libasound2 \
+    libgbm-dev \
+    libu2f-udev \
+    libvulkan1 \
+    xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # Set Chrome options
