@@ -7,8 +7,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install required system dependencies
 RUN apt-get update && apt-get install -y \
-    chromium \
-    chromium-driver \
+    chromium-browser \
+    chromium-chromedriver \
     fonts-liberation \
     libasound2 \
     libgbm-dev \
@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Set Chrome options
-ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROME_BIN=/usr/bin/chromium-browser
 ENV CHROMEDRIVER_BIN=/usr/bin/chromedriver
 
 # Set the working directory in the container
