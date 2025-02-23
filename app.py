@@ -14,7 +14,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from dotenv import load_dotenv
 from flask_talisman import Talisman
-import shutil
 
 # Load environment variables from .env file
 load_dotenv()
@@ -41,31 +40,6 @@ Talisman(app, content_security_policy={
 ########################################
 # HELPER FUNCTIONS
 ########################################
-
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-
-def get_driver():
-    """
-    Returns a Chrome WebDriver instance configured to run inside Docker.
-    """
-    chrome_options = Options()
-    # Use the chromium-browser binary
-    chrome_options.binary_location = "/usr/bin/chromium-browser"
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-
-    chromedriver_path = "/usr/bin/chromedriver"
-
-    # Debugging: Check if binaries exist
-    if not shutil.which(chrome_options.binary_location):
-        print("❌ ERROR: Chromium binary not found at", chrome_options.binary_location)
-    if not shutil.which(chromedriver_path):
-        print("❌ ERROR: Chromedriver binary not found at", chromedriver_path)
-
-    service = Service(chromedriver_path)
-    return webdriver.Chrome(service=service, options=chrome_options)
 
 def get_total_credits(department):
     dept_credits = {
@@ -188,8 +162,7 @@ def process_grade_sheet(username, password):
     prefs = {"download.default_directory": download_path}
     options.add_experimental_option("prefs", prefs)
     
-    driver = get_driver()
-
+    driver = webdriver.Chrome(options=options)
     pdf_filename = None
 
     try:
@@ -238,8 +211,6 @@ def process_grade_sheet(username, password):
 
     except Exception as e:
         app.logger.error(f"Error in processing grade sheet: {e}")
-        import traceback
-        traceback.print_exc()
 
     finally:
         driver.quit()
@@ -258,8 +229,7 @@ def process_schedule(username, password):
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
-    driver = get_driver()
-
+    driver = webdriver.Chrome(options=options)
     schedule_data = None
     try:
         driver.get("https://sso.bracu.ac.bd/realms/bracu/protocol/openid-connect/auth?client_id=slm&redirect_uri=https%3A%2F%2Fconnect.bracu.ac.bd%2F")
