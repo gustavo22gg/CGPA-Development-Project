@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Targeted CGPA Calculator</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #f2f2f2;
+      font-family: 'Roboto', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .login-container {
+      background-color: #fff;
+      padding: 50px;
+      border-radius: 10px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+    .login-container h2 { 
+      margin-bottom: 30px; 
+      color: #333; 
+      font-size: 24px;
+    }
+    .input-box {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 18px;
+    }
+    .input-box::placeholder {
+      font-size: 14px;
+    }
+    .password-container {
+      position: relative;
+      width: 100%;
+    }
+    .password-container input {
+      width: 100%;
+      padding: 14px 40px 14px 14px;
+      font-size: 18px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 22px;
+      color: #9370db;
+      background: none;
+      border: none;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 20px;
+      background-color: #9370db;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .login-btn:hover { background-color: #7a5fd4; }
+    .loading-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      color: #333;
+      border-radius: 8px;
+      display: none;
+    }
+    /* Footer */
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .footer p {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .footer a {
+      text-decoration: none;
+      margin: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      font-size: 14px;
+      color: #333;
+    }
+    .footer img {
+      width: 24px; /* Slightly larger for better visibility */
+      height: 24px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0.8;
+    }
+    .footer a:hover img {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+    /* Security Note */
+    .security-note {
+      font-size: 12px;
+      color: #666;
+      margin-top: 15px;
+      text-align: center;
+    }
+    /* Privacy Policy (Pushed lower on PC) */
+    .privacy-policy {
+      font-size: 13px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .privacy-policy a {
+      color: #7a5fd4;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .privacy-policy a:hover {
+      text-decoration: underline;
+    }
+    /* Adjust spacing for larger screens */
+    @media (min-width: 768px) {
+      .privacy-policy {
+        margin-top: 30px; /* Pushes it even lower on PC */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <form method="POST" action="/" id="loginForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <h2>Login</h2>
+      <div id="flash-messages"></div>
+      <input type="text" name="username" class="input-box" placeholder="Enter your Gsuit Email" required>
+      <div class="password-container">
+        <input type="password" name="password" class="input-box" placeholder="Enter your Connect Password" required id="passwordInput">
+        <button type="button" class="toggle-password" id="togglePassword">&#128065;</button>
+      </div>
+      <button type="submit" class="login-btn">Login</button>
+    </form>
+    <div class="loading-overlay" id="loadingOverlay">
+      Extracting data, please wait...
+    </div>
+  </div>
+
+  <!-- Footer (Icons Only) -->
+  <div class="footer">
+    <a href="mailto:shadmansiam18@gmail.com">
+      <img src="https://img.icons8.com/ios-glyphs/30/new-post.png" alt="Email">
+    </a>
+    <a href="https://www.instagram.com/shadmansiammm" target="_blank">
+      <img src="https://img.icons8.com/ios-glyphs/30/instagram.png" alt="Instagram">
+    </a>
+    <a href="https://www.linkedin.com/in/shadmangus123/" target="_blank">
+      <img src="https://img.icons8.com/ios-glyphs/30/linkedin.png" alt="LinkedIn">
+    </a>
+  </div>
+
+  <!-- Security Note -->
+  <div class="security-note">
+    ⚠️ This app does not store any user credentials or personal data. Your information is used only during your session.
+  </div>
+
+  <!-- Privacy Policy Link (Pushed Lower on PC) -->
+  <div class="privacy-policy">
+    <a href="https://github.com/shadmangus123" target="_blank">Privacy Policy</a>
+  </div>
+
+  <script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('passwordInput');
+    togglePassword.addEventListener('click', function() {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      this.innerHTML = type === 'password' ? '👁️' : '👁️‍🗨️';
+    });
+    document.getElementById("loginForm").addEventListener("submit", function() {
+      document.getElementById("loadingOverlay").style.display = "flex";
+    });
+  </script>
+</body>
+</html>
