@@ -50,10 +50,11 @@ def get_driver():
     Returns a Chrome WebDriver instance configured to run inside Docker.
     """
     chrome_options = Options()
-    chrome_options.binary_location = "/usr/bin/chromium"
-    chrome_options.add_argument("--headless")  
-    chrome_options.add_argument("--no-sandbox")  
-    chrome_options.add_argument("--disable-dev-shm-usage")  
+    # Use the chromium-browser binary
+    chrome_options.binary_location = "/usr/bin/chromium-browser"
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
 
     chromedriver_path = "/usr/bin/chromedriver"
 
@@ -65,6 +66,7 @@ def get_driver():
 
     service = Service(chromedriver_path)
     return webdriver.Chrome(service=service, options=chrome_options)
+
 def get_total_credits(department):
     dept_credits = {
         'cs': 124,
