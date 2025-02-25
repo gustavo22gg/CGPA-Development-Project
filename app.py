@@ -53,36 +53,38 @@ Talisman(app, content_security_policy={
 # Selenium WebDriver Setup for Render
 
 
-
 def create_driver():
-    # Install Chrome manually if not present
-    if not os.path.exists("/opt/render/project/.render/chrome/opt/google/chrome/chrome"):
+    chrome_path = "/opt/google/chrome/google-chrome"
+    
+    # Check if Chrome is already installed
+    if not os.path.exists(chrome_path):
         print("🚀 Installing Chrome...")
+
         subprocess.run(
+            "mkdir -p /opt/google/chrome && "
             "curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o chrome.deb && "
-            "sudo apt-get update && sudo apt-get install -y ./chrome.deb && "
+            "dpkg-deb -x chrome.deb /opt/google/chrome/ && "
             "rm chrome.deb",
             shell=True,
             check=True
         )
 
     # Set Chrome binary path (important for Render)
-    chrome_bin = "/opt/render/project/.render/chrome/opt/google/chrome/chrome"
-    os.environ["PATH"] += os.pathsep + os.path.dirname(chrome_bin)
+    os.environ["PATH"] += os.pathsep + "/opt/google/chrome/opt/google/chrome/"
 
     # Configure Selenium Chrome options
     chrome_options = Options()
-    chrome_options.binary_location = chrome_bin  # Tell Selenium where Chrome is
-    chrome_options.add_argument("--headless")  # Run in headless mode (no GUI)
-    chrome_options.add_argument("--no-sandbox")  # Required for Render
-    chrome_options.add_argument("--disable-dev-shm-usage")  # Prevent memory issues
-    chrome_options.add_argument("--disable-gpu")  # Disable GPU usage
-    chrome_options.add_argument("--remote-debugging-port=9222")  # Debugging support
+    chrome_options.binary_location = chrome_path
+    chrome_options.add_argument("--headless")  
+    chrome_options.add_argument("--no-sandbox")  
+    chrome_options.add_argument("--disable-dev-shm-usage")  
+    chrome_options.add_argument("--disable-gpu")  
 
-    # Use `webdriver-manager` to manage Chromedriver
+    # Use webdriver-manager to install Chromedriver
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
     return driver
+
 
 def get_total_credits(department):
     dept_credits = {
