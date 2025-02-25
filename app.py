@@ -54,23 +54,29 @@ Talisman(app, content_security_policy={
 
 
 def create_driver():
-    chrome_path = "/opt/google/chrome/google-chrome"
-    
+    chrome_path = "/tmp/chrome/chrome"
+
     # Check if Chrome is already installed
     if not os.path.exists(chrome_path):
-        print("🚀 Installing Chrome...")
+        print("🚀 Installing Chrome in /tmp/chrome/...")
 
         subprocess.run(
-            "mkdir -p /opt/google/chrome && "
-            "curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o chrome.deb && "
-            "dpkg-deb -x chrome.deb /opt/google/chrome/ && "
-            "rm chrome.deb",
+            "mkdir -p /tmp/chrome && "
+            "curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome/chrome.deb && "
+            "dpkg-deb -x /tmp/chrome/chrome.deb /tmp/chrome/ && "
+            "mv /tmp/chrome/opt/google/chrome/* /tmp/chrome/ && "
+            "rm -rf /tmp/chrome/opt /tmp/chrome/chrome.deb",
             shell=True,
             check=True
         )
 
-    # Set Chrome binary path (important for Render)
-    os.environ["PATH"] += os.pathsep + "/opt/google/chrome/opt/google/chrome/"
+        if os.path.exists(chrome_path):
+            print(f"✅ Chrome installed successfully at: {chrome_path}")
+        else:
+            print("❌ Chrome installation failed!")
+
+    # Set Chrome binary path
+    os.environ["PATH"] += os.pathsep + "/tmp/chrome/"
 
     # Configure Selenium Chrome options
     chrome_options = Options()
@@ -84,6 +90,7 @@ def create_driver():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
     return driver
+
 
 
 def get_total_credits(department):
