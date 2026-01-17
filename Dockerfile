@@ -4,6 +4,7 @@ FROM python:3.9-slim
 # Install system dependencies for Chrome and ChromeDriver.
 RUN apt-get update && apt-get install -y \
     wget \
+    curl \
     gnupg \
     unzip \
     xvfb \
