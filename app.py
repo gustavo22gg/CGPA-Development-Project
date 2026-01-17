@@ -72,7 +72,7 @@ def create_driver():
     
     # 4. Initialize the Driver
     # Selenium 4+ will automatically find the chromedriver in your path
-    driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
     return driver
 
