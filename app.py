@@ -68,6 +68,8 @@ def create_driver():
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-extensions")
     
+    service = Service(executable_path="/usr/local/bin/chromedriver")
+    
     # 4. Initialize the Driver
     # Selenium 4+ will automatically find the chromedriver in your path
     driver = webdriver.Chrome(options=chrome_options)
