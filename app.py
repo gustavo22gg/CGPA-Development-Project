@@ -52,29 +52,20 @@ Talisman(app, content_security_policy={
 
 # Selenium WebDriver Setup for Render
 
-
-import os
 def create_driver():
     # 1. Setup Chrome Options
     chrome_options = Options()
     
-    # Point to the Chrome installed by Docker (this part is still correct)
-    chrome_options.binary_location = "/usr/bin/google-chrome"
-    
-    # Add the standard flags
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-extensions")
 
-    # 2. ✅ AUTOMATIC DRIVER INSTALLATION
-    # Instead of looking for a file that Render deletes, we ask this manager 
-    # to download the correct driver right now and give us the path.
+    # Use the Manager to find the driver
     driver_path = ChromeDriverManager().install()
     service = Service(executable_path=driver_path)
     
-    # 3. Initialize the Driver
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     return driver
