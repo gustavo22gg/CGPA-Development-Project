@@ -54,31 +54,29 @@ Talisman(app, content_security_policy={
 
 
 import os
-
 def create_driver():
-    # 🔍 DEBUG: Check if the driver actually exists
-    expected_path = "/usr/local/bin/chromedriver"
-    
-    if os.path.exists(expected_path):
-        print(f"✅ Driver FOUND at {expected_path}")
-        # Check if it is executable
-        print(f"Permissions: {oct(os.stat(expected_path).st_mode)[-3:]}")
-    else:
-        print(f"❌ Driver NOT FOUND at {expected_path}")
-        # List what IS in /usr/local/bin to see where it went
-        if os.path.exists("/usr/local/bin"):
-             print(f"Contents of /usr/local/bin: {os.listdir('/usr/local/bin')}")
-        
-        # List /tmp just in case it got stuck there
-        if os.path.exists("/tmp"):
-             print(f"Contents of /tmp: {os.listdir('/tmp')}")
-
-    # ... The rest of your code ...
+    # 1. Setup Chrome Options
     chrome_options = Options()
+    
+    # Point to the Chrome installed by Docker (this part is still correct)
     chrome_options.binary_location = "/usr/bin/google-chrome"
-    # ... flags ...
-    service = Service(executable_path=expected_path)
+    
+    # Add the standard flags
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-extensions")
+
+    # 2. ✅ AUTOMATIC DRIVER INSTALLATION
+    # Instead of looking for a file that Render deletes, we ask this manager 
+    # to download the correct driver right now and give us the path.
+    driver_path = ChromeDriverManager().install()
+    service = Service(executable_path=driver_path)
+    
+    # 3. Initialize the Driver
     driver = webdriver.Chrome(service=service, options=chrome_options)
+
     return driver
 
 
