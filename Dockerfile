@@ -27,4 +27,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 5000
 # Use $PORT from environment (Render sets this)
-CMD ["gunicorn", "-b", "0.0.0.0:${PORT:-10000}", "--timeout", "120", "app:app"]
+CMD gunicorn -b 0.0.0.0:${PORT:-10000} --timeout 120 app:app
