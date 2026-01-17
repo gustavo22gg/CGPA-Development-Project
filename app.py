@@ -54,43 +54,17 @@ Talisman(app, content_security_policy={
 
 
 def create_driver():
-    chrome_path = "/tmp/chrome/chrome"
-
-    # Check if Chrome is already installed
-    if not os.path.exists(chrome_path):
-        print("🚀 Installing Chrome in /tmp/chrome/...")
-
-        subprocess.run(
-            "mkdir -p /tmp/chrome && "
-            "curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome/chrome.deb && "
-            "dpkg-deb -x /tmp/chrome/chrome.deb /tmp/chrome/ && "
-            "mv /tmp/chrome/opt/google/chrome/* /tmp/chrome/ && "
-            "rm -rf /tmp/chrome/opt /tmp/chrome/chrome.deb",
-            shell=True,
-            check=True
-        )
-
-        if os.path.exists(chrome_path):
-            print(f"✅ Chrome installed successfully at: {chrome_path}")
-        else:
-            print("❌ Chrome installation failed!")
-
-    # Set Chrome binary path
-    os.environ["PATH"] += os.pathsep + "/tmp/chrome/"
-
-    # Configure Selenium Chrome options
     chrome_options = Options()
-    chrome_options.binary_location = chrome_path
-    chrome_options.add_argument("--headless")  
-    chrome_options.add_argument("--no-sandbox")  
-    chrome_options.add_argument("--disable-dev-shm-usage")  
-    chrome_options.add_argument("--disable-gpu")  
+    chrome_options.binary_location = "/usr/bin/google-chrome"
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--single-process")
+    chrome_options.add_argument("--no-zygote")
 
-    # Use webdriver-manager to install Chromedriver
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-
-    return driver
-
+    service = Service("/usr/local/bin/chromedriver")
+    return webdriver.Chrome(service=service, options=chrome_options)
 
 
 def get_total_credits(department):
