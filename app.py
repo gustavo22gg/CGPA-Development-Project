@@ -1,16 +1,12 @@
+
 import os
 import time
 import re
 import json
-import tempfile
-
 import pdfplumber
 import requests
-from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from flask_talisman import Talisman
 from flask_wtf.csrf import CSRFProtect, generate_csrf
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -18,6 +14,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from dotenv import load_dotenv
+from flask_talisman import Talisman
+import tempfile
+from webdriver_manager.chrome import ChromeDriverManager
+import tempfile
+from selenium import webdriver
+import subprocess
 
 
 # Load environment variables from .env file
@@ -51,16 +54,45 @@ Talisman(app, content_security_policy={
 
 
 def create_driver():
-    options = Options()
-    options.binary_location = "/usr/bin/chromium"
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
+    chrome_path = "/tmp/chrome/chrome"
 
-    service = Service("/usr/bin/chromedriver")
-    return webdriver.Chrome(service=service, options=options)
-    
+    # Check if Chrome is already installed
+    if not os.path.exists(chrome_path):
+        print("🚀 Installing Chrome in /tmp/chrome/...")
+
+        subprocess.run(
+            "mkdir -p /tmp/chrome && "
+            "curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome/chrome.deb && "
+            "dpkg-deb -x /tmp/chrome/chrome.deb /tmp/chrome/ && "
+            "mv /tmp/chrome/opt/google/chrome/* /tmp/chrome/ && "
+            "rm -rf /tmp/chrome/opt /tmp/chrome/chrome.deb",
+            shell=True,
+            check=True
+        )
+
+        if os.path.exists(chrome_path):
+            print(f"✅ Chrome installed successfully at: {chrome_path}")
+        else:
+            print("❌ Chrome installation failed!")
+
+    # Set Chrome binary path
+    os.environ["PATH"] += os.pathsep + "/tmp/chrome/"
+
+    # Configure Selenium Chrome options
+    chrome_options = Options()
+    chrome_options.binary_location = chrome_path
+    chrome_options.add_argument("--headless")  
+    chrome_options.add_argument("--no-sandbox")  
+    chrome_options.add_argument("--disable-dev-shm-usage")  
+    chrome_options.add_argument("--disable-gpu")  
+
+    # Use webdriver-manager to install Chromedriver
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+    return driver
+
+
+
 def get_total_credits(department):
     dept_credits = {
         'cs': 124,
