@@ -53,16 +53,37 @@ Talisman(app, content_security_policy={
 # Selenium WebDriver Setup for Render
 
 def create_driver():
-    # 1. Setup Chrome Options
     chrome_options = Options()
+
+    # ✅ ROBUST BINARY FINDER
+    # We check common locations to find where Docker actually put Chrome
+    possible_paths = [
+        "/usr/bin/google-chrome", 
+        "/usr/bin/google-chrome-stable", 
+        "/opt/google/chrome/google-chrome"
+    ]
     
+    binary_path = None
+    for path in possible_paths:
+        if os.path.exists(path):
+            binary_path = path
+            break
+            
+    if binary_path:
+        print(f"✅ Found Chrome binary at: {binary_path}")
+        chrome_options.binary_location = binary_path
+    else:
+        # If we can't find it, we let Selenium try (but print a warning)
+        print("⚠️ Could not find Chrome binary in standard paths. Letting Selenium guess...")
+
+    # Standard Flags
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-extensions")
 
-    # Use the Manager to find the driver
+    # Driver Installation
     driver_path = ChromeDriverManager().install()
     service = Service(executable_path=driver_path)
     
