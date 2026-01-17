@@ -55,30 +55,55 @@ Talisman(app, content_security_policy={
 def create_driver():
     chrome_options = Options()
     # Standard Flags
-    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless=new")  # Updated headless mode
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-extensions")
-
-    # Dynamically find Chrome binary using 'which'
+    chrome_options.add_argument("--disable-setuid-sandbox")
+    chrome_options.add_argument("--remote-debugging-port=9222")
+    
+    # Try multiple paths where Chrome might be installed
+    chrome_paths = [
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser"
+    ]
+    
+    binary_found = False
+    for path in chrome_paths:
+        if os.path.exists(path):
+            print(f"✅ Found Chrome binary at: {path}")
+            chrome_options.binary_location = path
+            binary_found = True
+            break
+    
+    if not binary_found:
+        # Try using 'which' as fallback
+        try:
+            binary_path = subprocess.check_output(
+                ["which", "google-chrome"], 
+                stderr=subprocess.DEVNULL
+            ).decode().strip()
+            if binary_path:
+                print(f"✅ Found Chrome via which: {binary_path}")
+                chrome_options.binary_location = binary_path
+                binary_found = True
+        except:
+            pass
+    
+    if not binary_found:
+        raise Exception("❌ Chrome binary not found in any expected location")
+    
+    # Use ChromeDriverManager to get the correct driver
     try:
-        binary_path = subprocess.check_output("which google-chrome || which google-chrome-stable || echo ''", shell=True).decode().strip()
-        if binary_path:
-            print(f"✅ Found Chrome binary at: {binary_path}")
-            chrome_options.binary_location = binary_path
-        else:
-            raise Exception("❌ Chrome binary not found via 'which'")
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        return driver
     except Exception as e:
-        print(f"⚠️ Error finding Chrome binary: {e}")
-        # Fallback to common path
-        chrome_options.binary_location = "/usr/bin/google-chrome"
-
-    # Driver Installation
-    driver_path = ChromeDriverManager().install()
-    service = Service(executable_path=driver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-    return driver
+        print(f"❌ Failed to create driver: {e}")
+        raise
 
 
 def get_total_credits(department):
