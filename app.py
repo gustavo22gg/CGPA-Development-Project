@@ -54,43 +54,25 @@ Talisman(app, content_security_policy={
 
 
 def create_driver():
-    chrome_path = "/tmp/chrome/chrome"
-
-    # Check if Chrome is already installed
-    if not os.path.exists(chrome_path):
-        print("🚀 Installing Chrome in /tmp/chrome/...")
-
-        subprocess.run(
-            "mkdir -p /tmp/chrome && "
-            "curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome/chrome.deb && "
-            "dpkg-deb -x /tmp/chrome/chrome.deb /tmp/chrome/ && "
-            "mv /tmp/chrome/opt/google/chrome/* /tmp/chrome/ && "
-            "rm -rf /tmp/chrome/opt /tmp/chrome/chrome.deb",
-            shell=True,
-            check=True
-        )
-
-        if os.path.exists(chrome_path):
-            print(f"✅ Chrome installed successfully at: {chrome_path}")
-        else:
-            print("❌ Chrome installation failed!")
-
-    # Set Chrome binary path
-    os.environ["PATH"] += os.pathsep + "/tmp/chrome/"
-
-    # Configure Selenium Chrome options
+    # 1. Setup Chrome Options
     chrome_options = Options()
-    chrome_options.binary_location = chrome_path
-    chrome_options.add_argument("--headless")  
-    chrome_options.add_argument("--no-sandbox")  
-    chrome_options.add_argument("--disable-dev-shm-usage")  
-    chrome_options.add_argument("--disable-gpu")  
-
-    # Use webdriver-manager to install Chromedriver
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    
+    # 2. Point to the Chrome that Docker installed
+    # Standard location for Linux/Docker installs
+    chrome_options.binary_location = "/usr/bin/google-chrome" 
+    
+    # 3. Add the "Low Memory" Flags (Crucial for Free Tier)
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-extensions")
+    
+    # 4. Initialize the Driver
+    # Selenium 4+ will automatically find the chromedriver in your path
+    driver = webdriver.Chrome(options=chrome_options)
 
     return driver
-
 
 
 def get_total_credits(department):
