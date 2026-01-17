@@ -1,12 +1,16 @@
-
 import os
 import time
 import re
 import json
+import tempfile
+
 import pdfplumber
 import requests
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask_talisman import Talisman
 from flask_wtf.csrf import CSRFProtect, generate_csrf
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -14,13 +18,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from dotenv import load_dotenv
-from flask_talisman import Talisman
-import tempfile
-from webdriver_manager.chrome import ChromeDriverManager
-
-import tempfile
-from selenium import webdriver
 
 
 # Load environment variables from .env file
@@ -54,24 +51,16 @@ Talisman(app, content_security_policy={
 
 
 def create_driver():
-    chrome_options = Options()
-    
-    # 1. Point to the Chrome binary installed by render-build.sh
-    # The dpkg -x command extracts to .../opt/google/chrome/google-chrome
-    chrome_options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/google-chrome"
-    
-    chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--single-process") # Good for low-memory envs
-    
-    # 2. Use ChromeDriverManager to install the matching driver automatically
-    # This replaces manually setting service=Service("/usr/local/bin/chromedriver")
-    service = Service(ChromeDriverManager().install())
-    
-    return webdriver.Chrome(service=service, options=chrome_options)
+    options = Options()
+    options.binary_location = "/usr/bin/chromium"
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
 
+    service = Service("/usr/bin/chromedriver")
+    return webdriver.Chrome(service=service, options=options)
+    
 def get_total_credits(department):
     dept_credits = {
         'cs': 124,
