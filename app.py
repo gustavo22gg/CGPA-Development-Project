@@ -17,10 +17,9 @@ from selenium.webdriver.chrome.options import Options
 from dotenv import load_dotenv
 from flask_talisman import Talisman
 import tempfile
-from webdriver_manager.chrome import ChromeDriverManager
+
 import tempfile
 from selenium import webdriver
-import subprocess
 
 
 # Load environment variables from .env file
