@@ -17,6 +17,7 @@ from selenium.webdriver.chrome.options import Options
 from dotenv import load_dotenv
 from flask_talisman import Talisman
 import tempfile
+from webdriver_manager.chrome import ChromeDriverManager
 
 import tempfile
 from selenium import webdriver
@@ -54,17 +55,22 @@ Talisman(app, content_security_policy={
 
 def create_driver():
     chrome_options = Options()
-    chrome_options.binary_location = "/usr/bin/google-chrome"
+    
+    # 1. Point to the Chrome binary installed by render-build.sh
+    # The dpkg -x command extracts to .../opt/google/chrome/google-chrome
+    chrome_options.binary_location = "/opt/render/project/.render/chrome/opt/google/chrome/google-chrome"
+    
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--single-process")
-    chrome_options.add_argument("--no-zygote")
-
-    service = Service("/usr/local/bin/chromedriver")
+    chrome_options.add_argument("--single-process") # Good for low-memory envs
+    
+    # 2. Use ChromeDriverManager to install the matching driver automatically
+    # This replaces manually setting service=Service("/usr/local/bin/chromedriver")
+    service = Service(ChromeDriverManager().install())
+    
     return webdriver.Chrome(service=service, options=chrome_options)
-
 
 def get_total_credits(department):
     dept_credits = {
