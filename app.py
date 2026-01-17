@@ -52,58 +52,45 @@ Talisman(app, content_security_policy={
 
 # Selenium WebDriver Setup for Render
 
+
 def create_driver():
+    chrome_path = "/tmp/chrome/chrome"
+
+    # Check if Chrome is already installed
+    if not os.path.exists(chrome_path):
+        print("🚀 Installing Chrome in /tmp/chrome/...")
+
+        subprocess.run(
+            "mkdir -p /tmp/chrome && "
+            "curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome/chrome.deb && "
+            "dpkg-deb -x /tmp/chrome/chrome.deb /tmp/chrome/ && "
+            "mv /tmp/chrome/opt/google/chrome/* /tmp/chrome/ && "
+            "rm -rf /tmp/chrome/opt /tmp/chrome/chrome.deb",
+            shell=True,
+            check=True
+        )
+
+        if os.path.exists(chrome_path):
+            print(f"✅ Chrome installed successfully at: {chrome_path}")
+        else:
+            print("❌ Chrome installation failed!")
+
+    # Set Chrome binary path
+    os.environ["PATH"] += os.pathsep + "/tmp/chrome/"
+
+    # Configure Selenium Chrome options
     chrome_options = Options()
-    # Standard Flags
-    chrome_options.add_argument("--headless=new")  # Updated headless mode
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument("--disable-setuid-sandbox")
-    chrome_options.add_argument("--remote-debugging-port=9222")
-    
-    # Try multiple paths where Chrome might be installed
-    chrome_paths = [
-        "/usr/bin/google-chrome",
-        "/usr/bin/google-chrome-stable",
-        "/usr/bin/chromium",
-        "/usr/bin/chromium-browser"
-    ]
-    
-    binary_found = False
-    for path in chrome_paths:
-        if os.path.exists(path):
-            print(f"✅ Found Chrome binary at: {path}")
-            chrome_options.binary_location = path
-            binary_found = True
-            break
-    
-    if not binary_found:
-        # Try using 'which' as fallback
-        try:
-            binary_path = subprocess.check_output(
-                ["which", "google-chrome"], 
-                stderr=subprocess.DEVNULL
-            ).decode().strip()
-            if binary_path:
-                print(f"✅ Found Chrome via which: {binary_path}")
-                chrome_options.binary_location = binary_path
-                binary_found = True
-        except:
-            pass
-    
-    if not binary_found:
-        raise Exception("❌ Chrome binary not found in any expected location")
-    
-    # Use ChromeDriverManager to get the correct driver
-    try:
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-        return driver
-    except Exception as e:
-        print(f"❌ Failed to create driver: {e}")
-        raise
+    chrome_options.binary_location = chrome_path
+    chrome_options.add_argument("--headless")  
+    chrome_options.add_argument("--no-sandbox")  
+    chrome_options.add_argument("--disable-dev-shm-usage")  
+    chrome_options.add_argument("--disable-gpu")  
+
+    # Use webdriver-manager to install Chromedriver
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+    return driver
+
 
 
 def get_total_credits(department):
