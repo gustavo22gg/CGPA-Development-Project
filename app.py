@@ -1,4 +1,3 @@
-
 import os
 import time
 import re
@@ -40,7 +39,7 @@ Talisman(app, content_security_policy={
     'default-src': ["'self'"],
     'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     'script-src': ["'self'", "'unsafe-inline'"],
-    'img-src': ["'self'", "data:", "https://img.icons8.com"],  # ✅ Allow external images
+    'img-src': ["'self'", "data:", "https://img.icons8.com"],  # Allow external images
 })
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -58,7 +57,7 @@ def create_driver():
 
     # Check if Chrome is already installed
     if not os.path.exists(chrome_path):
-        print("🚀 Installing Chrome in /tmp/chrome/...")
+        print("Installing Chrome in /tmp/chrome/...")
 
         subprocess.run(
             "mkdir -p /tmp/chrome && "
@@ -71,9 +70,9 @@ def create_driver():
         )
 
         if os.path.exists(chrome_path):
-            print(f"✅ Chrome installed successfully at: {chrome_path}")
+            print(f"Chrome installed successfully at: {chrome_path}")
         else:
-            print("❌ Chrome installation failed!")
+            print("Chrome installation failed!")
 
     # Set Chrome binary path
     os.environ["PATH"] += os.pathsep + "/tmp/chrome/"
@@ -207,15 +206,15 @@ def process_grade_sheet(username, password):
     and extract student info, course records, and cumulative data.
     Ensures that the PDF is deleted even if extraction fails or disconnects.
     """
-    student_info, courses, final_cumulative = None, [], None  # ✅ Initialize variables
+    student_info, courses, final_cumulative = None, [], None  # Initialize variables
     completed_credits, current_cgpa = 0, None
     pdf_filename = None
 
-    driver = create_driver()  # ✅ Only get the driver (no tuple)
-    download_path = tempfile.gettempdir()  # ✅ Ensure download_path is defined
+    driver = create_driver()  # Only get the driver (no tuple)
+    download_path = tempfile.gettempdir()  # Ensure download_path is defined
 
     try:
-        # ✅ Step 1: Login
+        # Step 1: Login
         driver.get("https://sso.bracu.ac.bd/realms/bracu/protocol/openid-connect/auth?client_id=slm&redirect_uri=https%3A%2F%2Fconnect.bracu.ac.bd%2F")
         time.sleep(3)
 
@@ -226,19 +225,19 @@ def process_grade_sheet(username, password):
         password_input.send_keys(Keys.RETURN)
         time.sleep(5)
 
-        # ✅ Step 2: Navigate to Grade Sheet Page
+        # Step 2: Navigate to Grade Sheet Page
         driver.get("https://connect.bracu.ac.bd/student/grade-sheet")
         time.sleep(3)
 
-        # ✅ Step 3: Click the Download Button
+        # Step 3: Click the Download Button
         try:
             download_button = driver.find_element(By.CLASS_NAME, "btn.btn-info")
             download_button.click()
-            print("📥 Grade sheet download initiated...")
+            print("Grade sheet download initiated...")
         except Exception as e:
-            raise Exception("⚠️ Could not locate or click the download button: " + str(e))
+            raise Exception("Could not locate or click the download button: " + str(e))
 
-        # ✅ Step 4: Wait for the File to Download
+        # Step 4: Wait for the File to Download
         timeout = 30
         while timeout > 0:
             for file in os.listdir(download_path):
@@ -246,16 +245,16 @@ def process_grade_sheet(username, password):
                     pdf_filename = os.path.join(download_path, file)
                     break
             if pdf_filename:
-                break  # ✅ File found!
+                break  # File found!
             time.sleep(1)
             timeout -= 1
 
         if not pdf_filename:
-            raise Exception(f"❌ Downloaded grade sheet PDF not found in {download_path}!")
+            raise Exception(f"Downloaded grade sheet PDF not found in {download_path}!")
 
-        print(f"✅ PDF Downloaded: {pdf_filename}")
+        print(f"PDF Downloaded: {pdf_filename}")
 
-        # ✅ Step 5: Process the PDF
+        # Step 5: Process the PDF
         try:
             student_info, courses, final_cumulative = extract_grade_sheet(pdf_filename)
             if final_cumulative:
@@ -264,20 +263,20 @@ def process_grade_sheet(username, password):
                 completed_credits = sum(course[2] for course in courses)
                 current_cgpa = compute_cgpa(courses)
         finally:
-            # ✅ Ensure the file is deleted after processing
+            # Ensure the file is deleted after processing
             if pdf_filename and os.path.exists(pdf_filename):
                 os.remove(pdf_filename)
-                print(f"🗑 Deleted PDF: {pdf_filename}")
+                print(f"Deleted PDF: {pdf_filename}")
 
     except Exception as e:
-        print(f"🚨 Error in processing grade sheet: {e}")
+        print(f"Error in processing grade sheet: {e}")
 
     finally:
-        # ✅ Only quit if driver is an actual WebDriver object
+        # Only quit if driver is an actual WebDriver object
         if isinstance(driver, webdriver.Chrome):
             driver.quit()
 
-    # ✅ Always return 5 values
+    # Always return 5 values
     return student_info, courses, current_cgpa, completed_credits, final_cumulative
 
 
